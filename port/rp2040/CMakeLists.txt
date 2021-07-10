@@ -48,7 +48,7 @@ include(${VIREO_BOARD_DIR}/vireoboard.cmake)
 include(vireo_config.cmake)
 include(${VIREO_DIR}/vireo.cmake)
 
-# Brings in the Pi Pico SDK
+# Brings in the Pi Pico SDK, needed before declaring project
 include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
 
 project(Vireo)
@@ -60,7 +60,61 @@ add_executable(vireo)
 # Creates UF2 file and other debugging outputs
 pico_add_extra_outputs(vireo)
 
+# We expect RP2040_STDIO to be set to 'usb', 'uart', or 'none'
+# If not defined we default to usb.
+# Can be set to uart to allow using usb port for other tasks
+# and requires setting additional RP2040_STDIO_UART_XX values below
+if (NOT DEFINED RP2040_STDIO)
+    set(RP2040_STDIO usb)
+    message(DEBUG "No STDIO mapping specified, defaulting to usb")
+endif ()
+
+#Sets the driver to use for stdio
+if (RP2040_STDIO EQUAL "usb")
+    set(RP2040_STDIO_MAPPING pico_stdio_usb)
+elseif (RP2040_STDIO EQUAL "uart")
+    set(RP2040_STDIO_MAPPING pico_stdio_uart)
+
+    # The following VIREO_STDIO_UART_XX values configure the port when pico_stdio_uart is used above
+    # Default is pins on the bottom right of the Pico pinout diagram, similar to small arduino board RX/TX layout
+    if (NOT DEFINED RP2040_STDIO_UART_PORT)
+        set(RP2040_STDIO_UART_PORT uart0)
+    endif ()
+
+    if (NOT DEFINED RP2040_STDIO_UART_BAUD)
+        set(RP2040_STDIO_UART_BAUD 115200)
+    endif ()
+
+    # Note: RX and TX values can be set to -1 to disable that stdio direction
+    if (NOT DEFINED RP2040_STDIO_UART_RX)
+        set(RP2040_STDIO_UART_RX 21)
+    endif()
+
+    if (NOT DEFINED RP2040_STDIO_UART_TX)
+        set(RP2040_STDIO_UART_TX 22)
+    endif ()
+else()
+    unset(RP2040_STDIO_MAPPING)
+endif ()
+
+target_compile_definitions(vireo
+    PUBLIC __rp2040__
+)
+
+target_sources(vireo PRIVATE
+    ${VIREO_SOURCE_CORE}
+)
+
+target_include_directories(vireo PUBLIC
+    ${VIREO_INCLUDE}
+)
+
 # These are the components we're using from the pico-sdk
 set(PICO_SDK_COMPONENTS
     pico_stdlib
+)
+
+target_link_libraries(vireo
+    ${PICO_SDK_COMPONENTS}
+    ${RP2040_STDIO_MAPPING}
 )

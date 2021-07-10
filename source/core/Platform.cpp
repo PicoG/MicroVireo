@@ -44,6 +44,10 @@
 std::set <void*> gAllocSet;
 #endif
 
+#if defined(__rp2040__)
+#include <pico/time.h>
+#endif
+
 #if defined(VIREO_EMBEDDED_EXPERIMENT)
 
 #include <malloc.h>
@@ -365,6 +369,11 @@ PlatformTickType PlatformTimer::TickCount()
 #elif defined(kVireoOS_wiring)
 
     return micros();
+
+#elif defined(__rp2040__)
+    absolute_time_t time;
+    time = get_absolute_time();
+    return time;
 
 #elif defined(kVireoOS_linuxU)
 

@@ -41,6 +41,8 @@
     #include <xscutimer.h>
 #elif kVireoOS_emscripten
     #include <emscripten.h>
+#elif kVireoOS_embedded
+    #include <time.h>
 #endif
 
 namespace Vireo {
@@ -218,6 +220,7 @@ namespace Vireo {
         time_t rawtime = timestamp.Integer() - kStdDT1970re1904;
         struct tm timeinfo;
         localtime_r(&rawtime, &timeinfo);
+    #ifndef __rp2040__
         if (strchr(timeinfo.tm_zone, ' ') == nullptr) {
             // if timezone name is abbreviated, there won't be space. True on Linux and Mac (native, node.js, and browser)
             snprintf(timeZoneAbbr, sizeof(timeZoneAbbr), "%s", timeinfo.tm_zone);
@@ -225,6 +228,7 @@ namespace Vireo {
             // if timezone name is unabbreviated (True on Windows (both node.js and browser), then abbreviate it
             abbreviateTimeZone(timeinfo.tm_zone, timeZoneAbbr);
         }
+    #endif
 // #elif kVireoOS_emscripten variant deleted (03/2017); localtime_r works correctly
 #elif kVireoOS_windows
         TIME_ZONE_INFORMATION timeZoneInfo;
@@ -298,7 +302,11 @@ namespace Vireo {
             gmtime_r(&time, &tm);
         else
             localtime_r(&time, &tm);
+    #if defined __rp2040__
+        _timeZoneOffset = 0;
+    #else
         _timeZoneOffset = static_cast<int>(isUTC ? 0 : tm.tm_gmtoff);
+    #endif
         _secondsOfYear = 0;
         _year = tm.tm_year + 1900;
         _month = tm.tm_mon;
@@ -311,7 +319,12 @@ namespace Vireo {
 
         getYear(timestamp.Integer() + _timeZoneOffset , &_secondsOfYear, &_firstWeekDay);
 
+    #if defined __rp2040__
+        const char *tz = 0; //no TZ on embedded
+    #else
         const char *tz = isUTC ? "UTC" : tm.tm_zone;
+    #endif
+
         _daylightSavingTime = tm.tm_isdst;
         if (tz) {
             char timeZoneAbbr[kTempCStringLength];
@@ -370,7 +383,11 @@ namespace Vireo {
         struct tm tm;
         time_t timeVal = utcTime - kStdDT1970re1904;
         localtime_r(&timeVal, &tm);
+    #if defined __rp2040__
+        _systemLocaleTimeZone = 0;
+    #else
         _systemLocaleTimeZone = static_cast<int>(tm.tm_gmtoff);
+    #endif
 #else
         _systemLocaleTimeZone = GetTimeZoneOffsetSeconds(utcTime);
 #endif

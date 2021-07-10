@@ -122,3 +122,5 @@ emsdk/
 nohup.out
 emsdk-tools/
 *.nupkg
+
+build

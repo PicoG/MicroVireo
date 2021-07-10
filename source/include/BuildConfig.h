@@ -8,6 +8,10 @@
 #ifndef BUILDCONFIG_H
 #define BUILDCONFIG_H
 
+#if defined(__arm__)
+    #define kVireoOS_linuxU 1
+#endif
+
 #if (__linux__ == 1)
     #define kVireoOS_linuxU 1
 #endif

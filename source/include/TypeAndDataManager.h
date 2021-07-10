@@ -1227,7 +1227,7 @@ class TypedArray1D : public TypedArrayCore
     T  At(IntIndex index)       { return *reinterpret_cast<T*>(BeginAt(index));}
     T* BeginAt(IntIndex index)  { return reinterpret_cast<T*>(TypedArrayCore::BeginAt(index)); }
     T* BeginAtNDIndirect(Int32 rank, IntIndex* pDimIndexes) {
-        return reinterpret_cast<T*>(TypedArrayCore::BeginAtNDIndirect(rank, pDimIndexes));
+        return reinterpret_cast<T*>(TypedArrayCore::BeginAtNDIndirect(rank, (IntIndex**)pDimIndexes));
     }
 
     template <class T2> T2 AtAQ(IntIndex index)         { return *BeginAtAQ<T2*>(index); }
