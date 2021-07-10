@@ -1,7 +1,5 @@
-
-set(VIREO_CORE_DIR "${VIREO_DIR}/core")
-
-list(APPEND VIREO_INC_CORE "${VIREO_DIR}/include")
+# source/core/vireo.cmake
+# Core Vireo engine source files and configuration
 
 set (VIREO_SOURCE_CORE
     ${VIREO_CORE_DIR}/Array.cpp
