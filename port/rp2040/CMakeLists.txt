@@ -13,6 +13,9 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE MinSizeRel)
 endif()
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+
 #See if PICK_SDK_PATH already defined by environment, otherwise set it to default
 if (DEFINED ENV{PICO_SDK_PATH})
     set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})
@@ -60,20 +63,25 @@ add_executable(vireo)
 # Creates UF2 file and other debugging outputs
 pico_add_extra_outputs(vireo)
 
+message("\nConfiguring Vireo Engine build\n")
+
 # We expect RP2040_STDIO to be set to 'usb', 'uart', or 'none'
 # If not defined we default to usb.
 # Can be set to uart to allow using usb port for other tasks
 # and requires setting additional RP2040_STDIO_UART_XX values below
 if (NOT DEFINED RP2040_STDIO)
-    set(RP2040_STDIO usb)
-    message(DEBUG "No STDIO mapping specified, defaulting to usb")
+    set(RP2040_STDIO "usb")
+    message("No STDIO mapping specified, defaulting to usb")
 endif ()
 
+message("STDIO configured over ${RP2040_STDIO}")
+
 #Sets the driver to use for stdio
-if (RP2040_STDIO EQUAL "usb")
-    set(RP2040_STDIO_MAPPING pico_stdio_usb)
-elseif (RP2040_STDIO EQUAL "uart")
-    set(RP2040_STDIO_MAPPING pico_stdio_uart)
+if (RP2040_STDIO STREQUAL "usb")
+    pico_enable_stdio_usb(vireo 1)
+    pico_enable_stdio_uart(vireo 0)
+elseif (RP2040_STDIO STREQUAL "uart")
+    set(RP2040_STDIO_MAPPING "pico_stdio_uart")
 
     # The following VIREO_STDIO_UART_XX values configure the port when pico_stdio_uart is used above
     # Default is pins on the bottom right of the Pico pinout diagram, similar to small arduino board RX/TX layout
@@ -97,6 +105,9 @@ else()
     unset(RP2040_STDIO_MAPPING)
 endif ()
 
+message("STDIO Mapping used is ${RP2040_STDIO_MAPPING}")
+
+# We use __rp2040__ where we need to switch platform functionality in the source code
 target_compile_definitions(vireo
     PUBLIC __rp2040__
 )
@@ -117,5 +128,4 @@ set(PICO_SDK_COMPONENTS
 
 target_link_libraries(vireo
     ${PICO_SDK_COMPONENTS}
-    ${RP2040_STDIO_MAPPING}
 )
