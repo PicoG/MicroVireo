@@ -34,6 +34,7 @@ set (VIREO_SOURCE_CORE
     ${VIREO_CORE_DIR}/TimeFunctions.cpp
     ${VIREO_CORE_DIR}/Timestamp.cpp
     ${VIREO_CORE_DIR}/TypeAndDataManager.cpp
+    ${VIREO_CORE_DIR}/TypeAndDataReflection.cpp
     ${VIREO_CORE_DIR}/TypeDefiner.cpp
     ${VIREO_CORE_DIR}/TypeTemplates.cpp
     ${VIREO_CORE_DIR}/UnitTest.cpp

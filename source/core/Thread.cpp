@@ -19,7 +19,7 @@
 namespace Vireo {
 
 bool CompareAndSwapUInt32(volatile UInt32 *ptr, UInt32 new_value, UInt32 old_value) {
-#if (kVireoOS_linuxU || kVireoOS_macosxU)
+#if (kVireoOS_linuxU || kVireoOS_macosxU) && !defined __rp2040__
     return __sync_bool_compare_and_swap(ptr, old_value, new_value);
 #elif kVireosOS_windows
     return InterlockedCompareExchange((volatile LONG*)ptr, LONG(new_value), LONG(old_value)) == old_value;

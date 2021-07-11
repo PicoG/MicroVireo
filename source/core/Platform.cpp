@@ -549,6 +549,8 @@ Int64 PlatformTimer::TickCountToMicroseconds(PlatformTickType ticks)
 void PlatformTimer::SleepMilliseconds(Int64 milliseconds) {
 #if defined(_WIN32) || defined(_WIN64)
     Sleep((DWORD)milliseconds);
+#elif defined __rp2040__
+    sleep_us(milliseconds * 1000);
 #elif kVireoOS_macosxU || kVireoOS_linuxU
     usleep(UInt32(milliseconds * 1000));
 #else

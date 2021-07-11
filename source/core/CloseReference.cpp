@@ -75,9 +75,11 @@ VIREO_FUNCTION_SIGNATURET(CloseReference, CloseReferenceParamBlock)
     }
 #endif
 
+#ifndef __rp2040__
     // Report close reference error if there is not an error already present
     if (!errorAlreadyPresent)
         AddCallChainToSourceIfErrorPresent(errorClusterPtr, "CloseReference");
+#endif
 
     return _NextInstruction();
 }

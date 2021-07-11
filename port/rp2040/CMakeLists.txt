@@ -102,6 +102,7 @@ target_compile_definitions(vireo
 )
 
 target_sources(vireo PRIVATE
+    main.cpp
     ${VIREO_SOURCE_CORE}
 )
 
