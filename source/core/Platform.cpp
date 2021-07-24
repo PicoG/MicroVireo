@@ -48,6 +48,10 @@ std::set <void*> gAllocSet;
 #include <pico/time.h>
 #endif
 
+#if DEBUG_RP
+uint32_t usedMem = 0;
+#endif
+
 #if defined(VIREO_EMBEDDED_EXPERIMENT)
 
 #include <malloc.h>
@@ -130,6 +134,11 @@ PlatformMemory gPlatformMem;
 //! Static memory allocator used primarily by the TM
 void* PlatformMemory::Malloc(size_t countAQ)
 {
+#if DEBUG_RP
+    usedMem += countAQ;
+    printf("MALLOC: %d\tTotal: %d\n", countAQ, usedMem);
+#endif
+
 #if defined(VIREO_TRACK_MALLOC)
     size_t logicalSize = countAQ;
     countAQ += sizeof(size_t);

@@ -40,9 +40,11 @@ int main()
     gPlatform.IO.Print("Before RootShell\n");
     gShells._pRootShell = TypeManager::New(nullptr);
     gPlatform.IO.Print("Before UserShell\n");
+    sleep_ms(100);
     gShells._pUserShell = TypeManager::New(gShells._pRootShell);
 
     gPlatform.IO.Print("Before Loop\n");
+    sleep_ms(100);
     while (gShells._keepRunning) {
         gPlatform.IO.Print(">");
         {

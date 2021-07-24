@@ -2806,6 +2806,8 @@ Double ReadDoubleFromMemory(TypeRef type, const void* pData, NIError* errResult)
                 default: err = kNIError_kCantDecode;           break;
             }
             break;
+
+#if VIREO_TYPE_Timestamp==1
         case kEncoding_Cluster:
             if (type->IsTimestamp()) {
               Timestamp* t = (Timestamp*) pData;
@@ -2814,6 +2816,8 @@ Double ReadDoubleFromMemory(TypeRef type, const void* pData, NIError* errResult)
                 err = kNIError_kCantDecode;
             }
             break;
+#endif
+
         default:
             err = kNIError_kCantDecode;
             break;
@@ -2877,6 +2881,7 @@ NIError WriteDoubleToMemory(TypeRef type, void* pData, const Double value)
                 default: err = kNIError_kCantEncode;             break;
             }
             break;
+#if VIREO_TYPE_Timestamp==1
         case kEncoding_Cluster:
             if (type->IsTimestamp()) {
                 Timestamp* t = (Timestamp*) pData;
@@ -2885,6 +2890,8 @@ NIError WriteDoubleToMemory(TypeRef type, void* pData, const Double value)
                 err = kNIError_kCantEncode;
             }
             break;
+#endif
+
         default: err = kNIError_kCantDecode; break;
     }
     if (err != kNIError_Success) {

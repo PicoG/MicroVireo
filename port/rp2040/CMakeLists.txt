@@ -107,13 +107,14 @@ endif ()
 
 message("STDIO Mapping used is ${RP2040_STDIO_MAPPING}")
 
-# We use __rp2040__ where we need to switch platform functionality in the source code
 target_compile_definitions(vireo
-    PUBLIC __rp2040__
+    PUBLIC __rp2040__ #identify platform within code
+    PUBLIC DEBUG_RP=1 #Turn on stdout debugging and tracing of the engine
+    PUBLIC VIREO_MINI=1
 )
 
 target_sources(vireo PRIVATE
-    main.cpp
+    micromain.cpp
     ${VIREO_SOURCE_CORE}
 )
 

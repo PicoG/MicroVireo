@@ -321,6 +321,7 @@ void UpdateNumericStringWithDecimalSeparator(FormatOptions fOptions, char *numer
     }
 }
 
+#if VIREO_TYPE_Timestamp==1
 void TruncateLeadingZerosFromTimeString(StringRef buffer)
 {
     // Leading Hours and Minutes should be truncated if 0. Seconds should not be truncated if 0.
@@ -345,6 +346,7 @@ void TruncateLeadingZerosFromTimeString(StringRef buffer)
         buffer->Remove1D(0, indexToScan);
     }
 }
+#endif //VIREO_TYPE_Timestamp
 
 void CreateMismatchedFormatSpecifierError(SubString* format, Int32 count, StaticTypeAndData* arguments,
     StringRef buffer, FormatOptions fOptions, Boolean* validFormatString, Boolean* parseFinished,
@@ -355,6 +357,8 @@ void CreateMismatchedFormatSpecifierError(SubString* format, Int32 count, Static
     SetFormatError(kFormatTypeMismatch, count, fOptions.FormatChar, errPtr, false);
     buffer->Resize1D(0);
 }
+
+#if VIREO_TYPE_Timestamp==1
 
 // Extract a time format string from a %<>T general format string pre-parsed in fOptions, or provide a default if not supplied.
 // TempStakString defaultTimeFormat is used for storage if needed (dateTimeFormat may alias it).
@@ -415,6 +419,8 @@ static Int32 GetTimeZoneOffsetFromTimeAndLocale(StaticTypeAndData *arg, const Fo
     }
     return tz;
 }
+
+#endif //VIREO_TYPE_Timestamp
 
 /**
  * main format function, all the %format functionality is done through this one
@@ -849,6 +855,8 @@ void Format(SubString *format, Int32 count, StaticTypeAndData arguments[], Strin
                         argumentIndex++;
                     }
                     break;
+
+#if VIREO_TYPE_Timestamp==1
                     case 't':
                     case 'T':
                     {
@@ -884,6 +892,8 @@ void Format(SubString *format, Int32 count, StaticTypeAndData arguments[], Strin
                         argumentIndex++;
                     }
                     break;
+#endif //VIREO_TYPE_Timestamp
+
                     default:
                         gPlatform.IO.Printf("special error character %c\n", fOptions.FormatChar);
                         // This is just part of the format specifier, let it become part of the percent format
@@ -1763,6 +1773,8 @@ Int32 FormatScan(SubString *input, SubString *format, Int32 argCount, StaticType
                     argumentIndex++;
                 }
                 break;
+
+#if VIREO_TYPE_Timestamp == 1
                 case 't':
                 {
                     SubString datetimeFormat;
@@ -1804,6 +1816,8 @@ Int32 FormatScan(SubString *input, SubString *format, Int32 argCount, StaticType
                     argumentIndex++;
                 }
                 break;
+#endif //VIREO_TYPE_Timestamp
+
                 case '%': {    //%%
                     input->ReadRawChar(&inputChar);
                     ++offsetPastScan;
@@ -2838,6 +2852,8 @@ Boolean StringToRelTime(SubString *input, SubString* format, Double *relTimeSeco
     return validFormatString && canScan;
 }
 
+#if VIREO_TYPE_Timestamp == 1
+
 Boolean StringToDateTime(SubString *input, Boolean isUTC, SubString* format, Timestamp *tsPtr) {
     TempStackCString formatString;
     SubString tempFormat(format);
@@ -3087,6 +3103,7 @@ VIREO_FUNCTION_SIGNATURE4(FormatDateTimeString, StringRef, StringRef, Timestamp,
     }
     return _NextInstruction();
 }
+#endif //VIREO_TYPE_Timestamp
 
 #endif  // VIREO_TIME_FORMATTING
 

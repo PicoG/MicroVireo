@@ -8,9 +8,9 @@
 #ifndef BUILDCONFIG_H
 #define BUILDCONFIG_H
 
-#if defined(__arm__)
+/*#if defined(__arm__)
     #define kVireoOS_linuxU 1
-#endif
+#endif*/
 
 #if (__linux__ == 1)
     #define kVireoOS_linuxU 1
@@ -49,7 +49,7 @@
 // from C, or from generic prototypes.
 #define VIREO_INSTRUCTION_LINKAGE extern "C"
 
-#ifdef VIREO_MICRO
+#if defined(VIREO_MICRO)
     // For Vireo-micro there is a dispatch table statically linked at build time
     // In this case the functions need to need to be linkable across obj files
     #define VIREO_SINGLE_GLOBAL_CONTEXT
@@ -57,7 +57,7 @@
 
     #define VIREO_TYPE_Int8   1
 
-#elif defined(VIREO_MINI)
+#elif (VIREO_MINI == 1)
 
     // Options for turning off primitives for some types.
     // #define VIREO_TYPE_UInt8  1
@@ -75,6 +75,8 @@
     //  #define VIREO_TYPE_ComplexSingle 1
     //  #define VIREO_TYPE_ComplexDouble 1
     #define VIREO_TYPE_ArrayND 1
+
+    #define VIREO_VIA_FORMATTER 1
 
     //  #define VIREO_TYPE_Timestamp 1
 
