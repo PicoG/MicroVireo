@@ -230,9 +230,9 @@ void DumpPlatformMemoryLeaks() {  // to be called from debugger
 void PlatformIO::Print(ConstCStr str)
 {
     fwrite(str, 1, strlen(str), stdout);
-#if kVireoOS_emscripten
+//#if kVireoOS_emscripten
     fflush(stdout);
-#endif
+//#endif
 #if VIREO_JOURNAL_ALLOCS
     if (*str == 256)  // never true, hack to prevent dead code elim, only for debugging
         DumpPlatformMemoryLeaks();
@@ -243,9 +243,9 @@ void PlatformIO::Print(ConstCStr str)
 void PlatformIO::Print(Int32 len, ConstCStr str)
 {
     fwrite(str, 1, len, stdout);
-#if kVireoOS_emscripten
+//#if kVireoOS_emscripten
     fflush(stdout);
-#endif
+//#endif
 }
 //------------------------------------------------------------
 //! Static memory deallocator used for all TM memory management.
@@ -255,9 +255,9 @@ void PlatformIO::Printf(ConstCStr format, ...) const
     va_start(args, format);
     vprintf(format, args);
     va_end(args);
-#if kVireoOS_emscripten
+//#if kVireoOS_emscripten
     fflush(stdout);
-#endif
+//#endif
 }
 //------------------------------------------------------------
 //! Static memory deallocator used for all TM memory management.
@@ -298,12 +298,26 @@ void PlatformIO::ReadStdin(StringRef buffer)
 #else
     buffer->Reserve(5000);
     char c = fgetc(stdin);
+    if (c == '\r') {
+        fputc('\n', stdout);
+    } else {
+        fputc(c, stdout); //echo
+    }
+
+    fflush(stdout);
+
     while (true) {
-        if ((c == (char)EOF) || (c == '\n')) {
+        if ((c == (char)EOF) || (c == '\n' || (c == '\r'))) {
             break;
         }
         buffer->Append(c);
         c = fgetc(stdin);
+        if (c == '\r') {
+            fputc('\n', stdout);
+        } else {
+            fputc(c, stdout); //echo
+        }
+        fflush(stdout);
     }
 #endif
 }
@@ -497,6 +511,10 @@ PlatformTickType PlatformTimer::MicrosecondsToTickCount(Int64 microseconds)
 
     return microseconds / 1000;
 
+#elif defined(__rp2040__)
+
+    return microseconds;
+
 #else
     // #error MicroSecondCount not defined
     return 0;
@@ -547,6 +565,10 @@ Int64 PlatformTimer::TickCountToMicroseconds(PlatformTickType ticks)
 #elif defined(VIREO_EMBEDDED_EXPERIMENT)
 
     return ticks * 1000;
+
+#elif defined(__rp2040__)
+
+    return ticks; //ticks are uS
 
 #else
     // #error MicroSecondCount not defined

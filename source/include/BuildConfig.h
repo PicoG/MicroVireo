@@ -60,18 +60,18 @@
 #elif (VIREO_MINI == 1)
 
     // Options for turning off primitives for some types.
-    // #define VIREO_TYPE_UInt8  1
-    // #define VIREO_TYPE_UInt16 1
+    //#define VIREO_TYPE_UInt8  1
+    //#define VIREO_TYPE_UInt16 1
     #define VIREO_TYPE_UInt32 1
-    //  #define VIREO_TYPE_UInt64 1
+    //#define VIREO_TYPE_UInt64 1
 
-    // #define VIREO_TYPE_Int8   1
-    // #define VIREO_TYPE_Int16  1
+    //#define VIREO_TYPE_Int8   1
+    //#define VIREO_TYPE_Int16  1
     #define VIREO_TYPE_Int32  1
-    //  #define VIREO_TYPE_Int64  1
+    //#define VIREO_TYPE_Int64  1
 
-    //  #define VIREO_TYPE_Single 1
-    //  #define VIREO_TYPE_Double 1
+    //#define VIREO_TYPE_Single 1
+    #define VIREO_TYPE_Double 1
     //  #define VIREO_TYPE_ComplexSingle 1
     //  #define VIREO_TYPE_ComplexDouble 1
     #define VIREO_TYPE_ArrayND 1
@@ -172,6 +172,12 @@
     #ifdef VIVM_ENABLE_TRACE
         #define VIVM_TRACE(message)  {Serial.print(message); Serial.print("\n");}
         #define VIVM_TRACE_FUNCTION(name)   VIVM_TRACE(name)
+    #endif
+
+#elif defined(__rp2040__)
+    #ifdef VIVM_ENABLE_TRACE
+        #define VIVM_TRACE(message) {printf(message); putchar('\n');}
+        #define VIVM_TRACE_FUNCTION(name) VIVM_TRACE(#name)
     #endif
 
 //------------------------------------------------------------

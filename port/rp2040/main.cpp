@@ -13,7 +13,7 @@ static struct {
     Boolean _keepRunning;
 } gShells;
 
-void RunExec();
+bool RunExec();
 
 }  // namespace Vireo
 
@@ -29,38 +29,48 @@ int main()
 
     //Delay for ~10 seconds to give a chance to get a terminal app
     //attached before trying to initialize the rest of Vireo
-    for (int i = 0; i < 10; ++i) {
-        gPlatform.IO.Print("Hello, world!\n");
+    for (int i = 0; i < 6; ++i) {
+        gPlatform.IO.Print(".\n");
         sleep_ms(1000);
     }
+    gPlatform.IO.Print("\n");
 
     // Interactive mode is experimental.
     // the core loop should be processed by by a vireo program
     // once IO primitives are all there.
-    gPlatform.IO.Print("Before RootShell\n");
+    //gPlatform.IO.Print("Before RootShell\n");
     gShells._pRootShell = TypeManager::New(nullptr);
-    gPlatform.IO.Print("Before UserShell\n");
-    sleep_ms(100);
+
+    //gPlatform.IO.Print("Before UserShell\n");
     gShells._pUserShell = TypeManager::New(gShells._pRootShell);
 
-    gPlatform.IO.Print("Before Loop\n");
-    sleep_ms(100);
-    while (gShells._keepRunning) {
-        gPlatform.IO.Print(">");
+    //gPlatform.IO.Print("Before Loop\n");
+    //while (gShells._keepRunning) {
+    while (true) {
+        gPlatform.IO.Print("VIREO> ");
         {
             TypeManagerScope scope(gShells._pUserShell);
-            gPlatform.IO.Print("After Scope\n");
+            //gPlatform.IO.Print("After Scope\n");
             STACK_VAR(String, buffer);
-            gPlatform.IO.Print("After Buffer\n");
-            gPlatform.IO.Print(">");
+            //gPlatform.IO.Print("After Buffer\n");
+            //gPlatform.IO.Print(">");
+            //sleep_ms(10);
             gPlatform.IO.ReadStdin(buffer.Value);
-            gPlatform.IO.Print("After Stdin");
+            //gPlatform.IO.Print("After Stdin");
             SubString input = buffer.Value->MakeSubStringAlias();
-            TDViaParser::StaticRepl(gShells._pUserShell, &input);
+
+            if (input.ComparePrefixCStr("dump()")) {
+                gShells._pRootShell->DumpTypeNameDictionary();
+                continue;
+            } else {
+                TDViaParser::StaticRepl(gShells._pUserShell, &input);
+            }
         }
 
-        while (gShells._keepRunning) {
-            RunExec();
+        bool exec = true;
+        while (exec) {
+            //gPlatform.IO.Print("*\n");
+            exec = RunExec();
         }
     }
 
@@ -70,7 +80,7 @@ int main()
 
 //------------------------------------------------------------
 //! Execution pump.
-void Vireo::RunExec() {
+bool Vireo::RunExec() {
     TypeManagerRef tm = gShells._pUserShell;
     TypeManagerScope scope(tm);
     
@@ -78,9 +88,11 @@ void Vireo::RunExec() {
     // They should match the values for VJS in io/module_eggShell.js
     Int32 state = tm->TheExecutionContext()->ExecuteSlices(10000, 4);
     Int32 delay = state > 0 ? state : 0;
-    gShells._keepRunning = (state != kExecSlices_ClumpsFinished);
+    //gShells._keepRunning = (state != kExecSlices_ClumpsFinished);
 
     if (delay) {
         gPlatform.Timer.SleepMilliseconds(delay);
     }
+
+    return state != kExecSlices_ClumpsFinished;
 }

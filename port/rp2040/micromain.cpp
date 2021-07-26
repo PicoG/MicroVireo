@@ -21,8 +21,6 @@ using namespace Vireo;
 // extern "C" exports with no C++ type speciic name mangling.
 // The prototype could be generated with the source.
 
-extern "C" {
-
 //VIREO_FUNCTION_C_PROTO(Printf);
 VIREO_FUNCTION_C_PROTO(AddInt32);
 VIREO_FUNCTION_C_PROTO(MulInt32);
@@ -34,8 +32,6 @@ VIREO_FUNCTION_C_PROTO(NotBoolean);
 //VIREO_FUNCTION_C_PROTO(DebugButton);
 
 VIREO_FUNCTION_C_PROTO(Branch);
-
-} // extern "C"
 
 #define I(_I, ...)      ((void*)_I), __VA_ARGS__
 #define G(_a_)          // Global TBD ...
@@ -89,6 +85,17 @@ void* InstructionBlock[] =
  ///* 000F */    I(Done) //Not quite ready.
 };
 
+void* InstructionBlock2[] = {
+    (void*)AddInt32,
+    P(in1),
+    L(b),
+    P(out1),
+    (void*)MulInt32,
+    L(a),
+    L(b),
+    L(c),
+}
+
 // Break out flag.
 Boolean gKeepRunning = true;
 
@@ -108,6 +115,9 @@ extern "C" int main(int argc, const char * argv[])
     while (gKeepRunning) {
         // Unrolled execution loop;
         gPlatform.IO.Print("a\n");
+
+        gPlatform.IO.Printf("%d\n", (Int32)ip->_function);
+
         ip = ip->_function(ip);
         gPlatform.IO.Print("b\n");
         ip = ip->_function(ip);

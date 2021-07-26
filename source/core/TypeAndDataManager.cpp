@@ -3188,6 +3188,14 @@ VIREO_FUNCTION_SIGNATURE5(GetSubElementFromPath, StaticType, void, StringRef, St
     return _NextInstruction();
 }
 
+void TypeManager::DumpTypeNameDictionary() {
+    std::map<SubString, NamedTypeRef>::iterator iter = _typeNameDictionary.begin();
+    while (iter != _typeNameDictionary.end()) {
+        gPlatform.IO.Printf("VIREO TYPE: %s\n", iter->first);
+        ++iter;
+    }
+}
+
 #if defined(VIREO_INSTRUCTION_REFLECTION)
 //------------------------------------------------------------
 //! Map a native primtitive function pointer to its TypeRef and its native name.

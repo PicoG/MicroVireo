@@ -109,13 +109,16 @@ message("STDIO Mapping used is ${RP2040_STDIO_MAPPING}")
 
 target_compile_definitions(vireo
     PUBLIC __rp2040__ #identify platform within code
-    PUBLIC DEBUG_RP=1 #Turn on stdout debugging and tracing of the engine
+    PUBLIC DEBUG_RP=0 #Turn on stdout debugging and tracing of the engine
     PUBLIC VIREO_MINI=1
+    #PUBLIC VIVM_ENABLE_TRACE=1
 )
 
 target_sources(vireo PRIVATE
-    micromain.cpp
+    main.cpp
+    io/pico_gpio.cpp
     ${VIREO_SOURCE_CORE}
+    ${VIREO_SOURCE_IO}
 )
 
 target_include_directories(vireo PUBLIC
@@ -130,3 +133,5 @@ set(PICO_SDK_COMPONENTS
 target_link_libraries(vireo
     ${PICO_SDK_COMPONENTS}
 )
+
+set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
