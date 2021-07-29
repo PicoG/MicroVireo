@@ -7,6 +7,8 @@
 #Match the same minimum version specified by pico-sdk
 cmake_minimum_required(VERSION 3.13)
 
+set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Set build type to reduce firmware size
 # Used by pico-sdk
 if(NOT CMAKE_BUILD_TYPE)
@@ -110,8 +112,7 @@ message("STDIO Mapping used is ${RP2040_STDIO_MAPPING}")
 target_compile_definitions(vireo
     PUBLIC __rp2040__ #identify platform within code
     PUBLIC DEBUG_RP=0 #Turn on stdout debugging and tracing of the engine
-    PUBLIC VIREO_MINI=1
-    #PUBLIC VIVM_ENABLE_TRACE=1
+    PUBLIC DEBUG_MEM=0
 )
 
 target_sources(vireo PRIVATE
@@ -134,4 +135,17 @@ target_link_libraries(vireo
     ${PICO_SDK_COMPONENTS}
 )
 
-set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
+#Enable features and types for Vireo, eventually migrate to macros provided in Vireo base cmake
+# which will also allow the vireo build to customize which source files get built.
+target_compile_definitions(vireo
+    PUBLIC VIREO_SKIP_CFG_TYPES=1 #Skip configuration defines in BuildConfig.h
+    PUBLIC VIREO_DEBUG_EXEC_PRINT_INSTRS=0
+
+    PUBLIC VIREO_TYPE_UInt32=1
+    PUBLIC VIREO_TYPE_Int32=1
+    PUBLIC VIREO_TYPE_Double=1
+    PUBLIC VIREO_TYPE_ArrayND=1
+    PUBLIC VIREO_VIA_FORMATTER=1
+    PUBLIC VIREO_POSIX_FILEIO=1
+    #PRIVATE kVireoOS_linuxU=1
+)

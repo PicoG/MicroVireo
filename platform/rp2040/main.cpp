@@ -26,14 +26,11 @@ int main()
     gPlatform.Setup();
     gShells._keepRunning = true;
     //LOG_PLATFORM_MEM("Mem after init")
-
-    //Delay for ~10 seconds to give a chance to get a terminal app
-    //attached before trying to initialize the rest of Vireo
-    for (int i = 0; i < 6; ++i) {
-        gPlatform.IO.Print(".\n");
-        sleep_ms(1000);
+    
+    //need to give time for USB init and enumeration
+    for (int i = 0; i < 200; ++i) {
+        sleep_ms(10);
     }
-    gPlatform.IO.Print("\n");
 
     // Interactive mode is experimental.
     // the core loop should be processed by by a vireo program

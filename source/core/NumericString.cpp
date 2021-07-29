@@ -3444,7 +3444,10 @@ VIREO_FUNCTION_SIGNATURE4(SpreadsheetStringtoArrayWithArrayDelim, StringRef, Str
 
 //-------------------------------------------------------------------
 DEFINE_VIREO_BEGIN(NumericString)
+#ifdef VIREO_TYPE_Timestamp
     DEFINE_VIREO_REQUIRE(Timestamp)
+#endif
+
     DEFINE_VIREO_FUNCTION(StringFormatValue, "p(o(String) i(String) i(StaticTypeAndData))")
     DEFINE_VIREO_FUNCTION(StringFormat, "p(i(VarArgCount) o(String)   i(String) io(ErrorCluster err) i(StaticTypeAndData))")
     DEFINE_VIREO_FUNCTION(StringScanValue, "p(i(String) o(String) i(String) o(StaticTypeAndData))")

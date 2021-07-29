@@ -29,6 +29,10 @@
     #include <math.h>
 #endif
 
+#if DEBUG_RP
+    #include <stdio.h>
+#endif
+
 // LOG_EVENT Note: variadic macros were defined as part of C99 but exactly what happens when no extra parameter are
 // passed is not consistent so there are two versions, one for only the two base parameters,
 // and one for three or more arguments. If the discrepancies are resolved in a later standard, the two can be merged.
@@ -1608,6 +1612,9 @@ void TDViaParser::FinalizeVILoad(VirtualInstrument* vi, EventLog* pLog)
 #ifdef VIREO_USING_ASSERTS
             //  Int32 startingAllocations = vi->TheTypeManager()->_totalAllocations;
 #endif
+#if DEBUG_RP
+        fprintf(stdout, "Parse1\n"); fflush(stdout);
+#endif
             EventLog dummyLog(EventLog::DevNull);
             TDViaParser parser(vi->TheTypeManager(), &clumpSource, &dummyLog, vi->_lineNumberBase);
             for (; pClump < pClumpEnd; pClump++) {
@@ -1624,6 +1631,10 @@ void TDViaParser::FinalizeVILoad(VirtualInstrument* vi, EventLog* pLog)
         // (2) Allocate a chunk for instructions to come out of.
         pClump = vi->Clumps()->Begin();
         cia.Allocate(pClump->TheTypeManager());
+
+#if DEBUG_RP
+        fprintf(stdout, "Parse2\n"); fflush(stdout);
+#endif
 
         {
             // (3) Parse a second time, instructions will be allocated out of the chunk.
@@ -1696,7 +1707,15 @@ void TDViaParser::ParseClump(VIClump* viClump, InstructionAllocator* cia)
     // of the clump will be found immediately
     tt = _string.ReadToken(&token);
     IntMax fireCount = 1;
+#if DEBUG_RP
+    fprintf(stdout, "Parse FC\n"); fflush(stdout);
+#endif
+
     if (token.ReadInt(&fireCount)) {
+#if DEBUG_RP
+        fprintf(stdout, "\tReadInt %d\n", fireCount); fflush(stdout);
+#endif
+
         _string.ReadToken(&instructionNameToken);
     } else if (token.CompareCStr(tsFireCountOpToken)) {
         if (!_string.EatChar('('))
@@ -1706,6 +1725,9 @@ void TDViaParser::ParseClump(VIClump* viClump, InstructionAllocator* cia)
         if (!token.ReadInt(&fireCount)) {
             return LOG_EVENT(kHardDataError, "fire count error");
         }
+#if DEBUG_RP
+        fprintf(stdout, "\tFCOp %d\n", fireCount); fflush(stdout);
+#endif
 
         instructionNameToken = token;
         if (!_string.EatChar(')'))
@@ -1713,6 +1735,9 @@ void TDViaParser::ParseClump(VIClump* viClump, InstructionAllocator* cia)
 
         _string.ReadToken(&instructionNameToken);
     } else {
+#if DEBUG_RP
+        fprintf(stdout, "\tDef FC 1\n"); fflush(stdout);
+#endif
         // Using default FireCount(1). Treat token as regulat instruction.
         fireCount = 1;
         instructionNameToken = token;

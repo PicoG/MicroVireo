@@ -48,7 +48,7 @@ std::set <void*> gAllocSet;
 #include <pico/time.h>
 #endif
 
-#if DEBUG_RP
+#if DEBUG_MEM
 uint32_t usedMem = 0;
 #endif
 
@@ -134,7 +134,7 @@ PlatformMemory gPlatformMem;
 //! Static memory allocator used primarily by the TM
 void* PlatformMemory::Malloc(size_t countAQ)
 {
-#if DEBUG_RP
+#if DEBUG_MEM
     usedMem += countAQ;
     printf("MALLOC: %d\tTotal: %d\n", countAQ, usedMem);
 #endif

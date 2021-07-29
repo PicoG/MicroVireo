@@ -11,6 +11,10 @@
 #include "Events.h"
 #include "DebuggingToggles.h"
 
+#if DEBUG_RP
+#include <stdio.h>
+#endif
+
 namespace Vireo
 {
 #ifndef VIREO_MICRO
@@ -22,6 +26,14 @@ NIError VirtualInstrument::Init(TypeManagerRef tm, Int32 clumpCount, TypeRef par
 {
     VIREO_ASSERT(_typeManager == nullptr)
     VIREO_ASSERT( sizeof(VIClump) == _clumps->ElementType()->TopAQSize() )
+
+    SubString t = _clumps->ElementType()->Name();
+    t.Length(); t.Begin();
+
+#if DEBUG_RP
+    fprintf(stdout, "\t%lu %lu\n", sizeof(VIClump), _clumps->ElementType()->TopAQSize()); fflush(stdout);
+    fprintf(stdout, "\t%.*s\n", t.Length(), t.Begin()); fflush(stdout);
+#endif
 
     // The preliminary initialization defines a generic VI
     // finish it out by defining its type.
@@ -60,6 +72,7 @@ void VirtualInstrument::InitParamBlock()
     AQBlock1* pParamData = viParamBlock->RawBegin();
 
     Int32 count = viParamType->SubElementCount();
+
     // Make sure VI is in its initial state
     for (Int32 i = 0; i < count; i++) {
         TypeRef eltType = viParamType->GetSubElement(i);
@@ -163,8 +176,19 @@ void VIClump::Trigger()
     VIREO_ASSERT(THREAD_EXEC() == TheExecutionContext())
 
     if (--_shortCount == 0) {
+#if DEBUG_RP
+        fprintf(stdout, "\tEnqueue %s\n", this->_owningVI->_viName);
+        fflush(stdout);
+#endif
+
         EnqueueRunQueue();
     }
+#if DEBUG_RP
+    else {
+        fprintf(stdout, "\tFireCount %d\n", _shortCount);
+        fflush(stdout);
+    }
+#endif
 }
 //------------------------------------------------------------
 void VIClump::InsertIntoWaitList(VIClump* elt)
@@ -415,9 +439,15 @@ void ClumpParseState::SetClumpFireCount(Int32 fireCount) const
     // before it has been fully loaded. Don't stomp that
     // This should only be true for root clumps
     if (_clump->_fireCount == _clump->_shortCount) {
+#if DEBUG_RP
+        fprintf(stdout, "\t\tReset sC %d\n", _clump->_shortCount); fflush(stdout);
+#endif
         _clump->_shortCount = fireCount;
     }
     _clump->_fireCount = fireCount;
+#if DEBUG_RP
+        fprintf(stdout, "\t\tSet fC %d\n", fireCount); fflush(stdout);
+#endif
 }
 //------------------------------------------------------------
 TypeRef ClumpParseState::ReresolveInstruction(SubString* opName)
@@ -854,10 +884,24 @@ void ClumpParseState::AddClumpTargetArgument(SubString* clumpIndexToken)
 {
     IntMax clumpIndex;
     clumpIndexToken->ReadInt(&clumpIndex);
+#if DEBUG_RP
+    fprintf(stdout, "\tVIClump: %d ", clumpIndex);
+    fflush(stdout);
+#endif
+
     if (clumpIndex<0 || clumpIndex >= _vi->Clumps()->Length()) {
+#if DEBUG_RP
+    fprintf(stdout, "UNRESOLVED\n");
+    fflush(stdout);
+#endif
         _argumentState = kArgumentNotResolved;
         return;
     }
+
+#if DEBUG_RP
+    fprintf(stdout, "resolved.\n");
+    fflush(stdout);
+#endif
 
     _argumentState = kArgumentResolvedToClump;
     InternalAddArgBack(nullptr, _vi->Clumps()->BeginAt((IntIndex)clumpIndex));
@@ -1293,12 +1337,16 @@ class VIDataProcsClass : public IDataProcs
         VIClump *pClumpEnd = viCopy->Clumps()->End();
         // Set clumps to point to the correct owner,
         // clear any indication they are running.
-        for (; pClump < pClumpEnd; pClump++) {
+        for (int i = 0; pClump < pClumpEnd; pClump++) {
+#if DEBUG_RP
+            fprintf(stdout, "CopyData %d\n", pClump->_fireCount); fflush(stdout);
+#endif
             pClump->_owningVI = viCopy;
             pClump->_next = nullptr;
             pClump->_codeStart = nullptr;
             pClump->_savePc = nullptr;
             pClump->_shortCount = pClump->_fireCount;
+            ++i;
         }
         return kNIError_Success;
     }

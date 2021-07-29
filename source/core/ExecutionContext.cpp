@@ -14,6 +14,10 @@
 #include <emscripten.h>
 #endif
 
+#if DEBUG_RP
+#include <stdio.h>
+#endif
+
 namespace Vireo {
 
 #if kVireoOS_emscripten
@@ -121,6 +125,12 @@ InstructionCore* ExecutionContext::Stop()
 // Trigger - Decrement target fire count (may cause target to be activated)
 VIREO_FUNCTION_SIGNATURE1(Trigger, VIClump)
 {
+#if DEBUG_RP
+    fprintf(stdout, "\tTrigger"); fflush(stdout);
+
+    fprintf(stdout, " p0: %X\n", _ParamPointer(0)); fflush(stdout);
+#endif
+
     _ParamPointer(0)->Trigger();
     return _NextInstruction();
 }
@@ -352,7 +362,15 @@ Int32 /*ExecSlicesResult*/ ExecutionContext::ExecuteSlices(Int32 numSlices, Int3
             gPlatform.IO.Printf("Exec: %s\n", cName.Begin());
             currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
 #else
+#if DEBUG_RP
+            fprintf(stdout, "\t\tcI: %X  f: %X\n", currentInstruction, currentInstruction->_function);
+            fflush(stdout);
+#endif
             currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
+#if DEBUG_RP
+            fprintf(stdout, "\t\t\tnI: %X\n", currentInstruction);
+            fflush(stdout);
+#endif
 #if VIVM_UNROLL_EXEC
             currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
             currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
@@ -480,6 +498,10 @@ DEFINE_VIREO_BEGIN(Execution)
     DEFINE_VIREO_FUNCTION(FPSync, "p(i(String))")
     DEFINE_VIREO_FUNCTION(SetValueNeedsUpdate, "p(i(StaticTypeAndData value))")
     DEFINE_VIREO_FUNCTION(CheckValueNeedsUpdate, "p(i(StaticTypeAndData value) o(Boolean))")
+#if DEBUG_RP
+    fprintf(stdout, "\t\tTrigger: %X\n", Trigger);
+    fflush(stdout);
+#endif
     DEFINE_VIREO_FUNCTION(Trigger, "p(i(Clump))")
     DEFINE_VIREO_FUNCTION(Wait, "p(i(Clump))")
     DEFINE_VIREO_FUNCTION(Branch, "p(i(BranchTarget))")

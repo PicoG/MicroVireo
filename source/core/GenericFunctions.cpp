@@ -2761,9 +2761,18 @@ DEFINE_VIREO_BEGIN(GenericsConvert)
 DEFINE_VIREO_END()
 
 DEFINE_VIREO_BEGIN(Generics)
+#ifdef VIREO_TYPE_ComplexSingle
     DEFINE_VIREO_REQUIRE(IEEE754ComplexSingleMath)
+#endif
+
+#ifdef VIREO_TYPE_ComplexDouble
     DEFINE_VIREO_REQUIRE(IEEE754ComplexDoubleMath)
+#endif
+
+#ifdef VIREO_TYPE_Timestamp
     DEFINE_VIREO_REQUIRE(Timestamp)
+#endif
+
     DEFINE_VIREO_FUNCTION(Init, "p(i(StaticTypeAndData))");
     DEFINE_VIREO_FUNCTION(Clear, "p(i(StaticTypeAndData))");
     DEFINE_VIREO_FUNCTION(ZeroOutTop, "p(i(StaticTypeAndData))")

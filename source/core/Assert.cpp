@@ -21,7 +21,7 @@ void VireoAssert_Hidden(Boolean test, ConstCStr message, ConstCStr file, int lin
         // may be preferred.
         throw(1);
 #else
-        exit(1);
+        //exit(1);
 #endif
     }
 }

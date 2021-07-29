@@ -28,7 +28,7 @@
 
 // Definitions common for most platforms
 // Platform specific overrides are found in the sections below
-#define VIVM_UNROLL_EXEC 1
+#define VIVM_UNROLL_EXEC 0
 
 #define VIREO_MAIN main
 
@@ -49,7 +49,10 @@
 // from C, or from generic prototypes.
 #define VIREO_INSTRUCTION_LINKAGE extern "C"
 
-#if defined(VIREO_MICRO)
+#if VIREO_SKIP_CFG_TYPES
+    //Bypass these type configurations when configured within cmake files
+    
+#elif defined(VIREO_MICRO)
     // For Vireo-micro there is a dispatch table statically linked at build time
     // In this case the functions need to need to be linkable across obj files
     #define VIREO_SINGLE_GLOBAL_CONTEXT
@@ -59,24 +62,30 @@
 
 #elif (VIREO_MINI == 1)
 
+    #define VIREO_TYPE_UInt32 1
+    #define VIREO_TYPE_Int32  1
+    #define VIREO_TYPE_Double 1
+    #define VIREO_TYPE_ArrayND 1
+    #define VIREO_VIA_FORMATTER 1
+    #define VIREO_POSIX_FILEIO 1
+
+    #undef VIREO_FILESYSTEM
+
+    //#define VIREO_SINGLE_GLOBAL_CONTEXT
+
     // Options for turning off primitives for some types.
     //#define VIREO_TYPE_UInt8  1
     //#define VIREO_TYPE_UInt16 1
-    #define VIREO_TYPE_UInt32 1
     //#define VIREO_TYPE_UInt64 1
 
     //#define VIREO_TYPE_Int8   1
     //#define VIREO_TYPE_Int16  1
-    #define VIREO_TYPE_Int32  1
     //#define VIREO_TYPE_Int64  1
 
     //#define VIREO_TYPE_Single 1
-    #define VIREO_TYPE_Double 1
     //  #define VIREO_TYPE_ComplexSingle 1
     //  #define VIREO_TYPE_ComplexDouble 1
-    #define VIREO_TYPE_ArrayND 1
 
-    #define VIREO_VIA_FORMATTER 1
 
     //  #define VIREO_TYPE_Timestamp 1
 
@@ -94,10 +103,8 @@
     // #define VIREO_TYPE_CONSTRUCTION 1
 
     // #define VIREO_MULTI_THREAD
-    #undef VIREO_FILESYSTEM
 
     // FILEIO covers read and write operation, perhaps only for stdio.
-    #define VIREO_POSIX_FILEIO 1
 
 #else
 
@@ -176,7 +183,7 @@
 
 #elif defined(__rp2040__)
     #ifdef VIVM_ENABLE_TRACE
-        #define VIVM_TRACE(message) {printf(message); putchar('\n');}
+        #define VIVM_TRACE(message) {fprintf(stdout, message); fputc('\n', stdout); fflush(stdout);}
         #define VIVM_TRACE_FUNCTION(name) VIVM_TRACE(#name)
     #endif
 

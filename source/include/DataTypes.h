@@ -152,6 +152,8 @@ typedef Int16   AQBlock2;
 typedef Int32   AQBlock4;
 typedef Int64   AQBlock8;
 
+#define VIREO_USING_ASSERTS
+
 //------------------------------------------------------------
 #ifdef VIREO_USING_ASSERTS
     #ifdef VIREO_MICRO

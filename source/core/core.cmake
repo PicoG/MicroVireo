@@ -8,7 +8,7 @@ set (VIREO_SOURCE_CORE
     ${VIREO_CORE_DIR}/CloseReference.cpp
     ${VIREO_CORE_DIR}/ControlRef.cpp
     ${VIREO_CORE_DIR}/DataQueue.cpp
-    ${VIREO_CORE_DIR}/Date.cpp
+    #${VIREO_CORE_DIR}/Date.cpp
     ${VIREO_CORE_DIR}/DualTypeConversion.cpp
     ${VIREO_CORE_DIR}/DualTypeEqual.cpp
     ${VIREO_CORE_DIR}/DualTypeOperation.cpp

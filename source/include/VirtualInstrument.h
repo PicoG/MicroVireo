@@ -138,6 +138,8 @@ class FunctionClump
 "    e(Int32 WaitCount)\n" \
 "    e(Observer Observer)\n" \
 "    e(Observer Observer)\n" \
+"    e(Int64 TestPad)\n" \
+"    e(Int32 TestPad2)\n" \
 ")"
 
 // Initially all clump had the ability to wait on timers, now that has grown to
