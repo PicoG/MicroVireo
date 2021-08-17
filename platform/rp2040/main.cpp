@@ -90,7 +90,11 @@ int main()
                 gPlatform.IO.ReadStdin(buffer.Value);
                 input = buffer.Value->MakeSubStringAlias();
 
-                if (input.ComparePrefixCStr("dump()")) {
+                //gPlatform.IO.Printf("(%d)\n", input.Length());
+
+                if (input.Length() == 0) {
+                    continue;
+                } else if (input.ComparePrefixCStr("dump()")) {
                     gShells._pRootShell->DumpTypeNameDictionary();
                     continue;
                 } else if (input.ComparePrefixCStr("store()")) {

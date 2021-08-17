@@ -119,6 +119,7 @@ target_sources(vireo PRIVATE
     main.cpp
     io/pico_gpio.cpp
     io/pico_persist.cpp
+    io/pico_io.cpp
     ${VIREO_SOURCE_CORE}
     ${VIREO_SOURCE_IO}
 )

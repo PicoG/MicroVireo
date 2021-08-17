@@ -136,6 +136,7 @@ private:
 
     //returns true if a command was intercepted and fgetc needs to be repeated
     char _fgetc(FILE *file);
+    int _getchar_timeout_us(uint32_t timeout_us);
     void resetCmd();
 };
 
