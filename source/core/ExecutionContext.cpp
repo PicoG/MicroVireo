@@ -119,6 +119,8 @@ InstructionCore* ExecutionContext::Stop()
     _runningQueueElt = nullptr;
     _breakoutCount = 0;
 
+    gPlatform.IO.Print("\n\tSTOP!\n");
+
     return &_culDeSac;
 }
 //------------------------------------------------------------
@@ -362,27 +364,36 @@ Int32 /*ExecSlicesResult*/ ExecutionContext::ExecuteSlices(Int32 numSlices, Int3
             gPlatform.IO.Printf("Exec: %s\n", cName.Begin());
             currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
 #else
-#if DEBUG_RP
+    #if DEBUG_RP
             fprintf(stdout, "\t\tcI: %X  f: %X\n", currentInstruction, currentInstruction->_function);
             fflush(stdout);
-#endif
+    #endif
+
             currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
-#if DEBUG_RP
+
+    #if DEBUG_RP
             fprintf(stdout, "\t\t\tnI: %X\n", currentInstruction);
             fflush(stdout);
+    #endif
+    #if VIVM_UNROLL_EXEC
+            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
+            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
+            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
+            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
+            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
+            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
+            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
+            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
+            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
+    #endif
 #endif
-#if VIVM_UNROLL_EXEC
-            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
-            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
-            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
-            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
-            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
-            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
-            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
-            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
-            currentInstruction = _PROGMEM_PTR(currentInstruction, _function)(currentInstruction);
-#endif
-#endif
+
+            UInt8 cmd = gPlatform.IO.checkCommand();
+
+            if (cmd == CMD_ABORT || cmd == CMD_RESET) {
+                this->Stop();   
+            }
+
         } while (_breakoutCount-- > 0);
 
         currentTime = gPlatform.Timer.TickCount();

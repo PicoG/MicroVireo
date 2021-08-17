@@ -1450,6 +1450,7 @@ VIREO_FUNCTION_SIGNATURE2(ArrayTranspose, TypedArrayCoreRef, TypedArrayCoreRef)
     return _NextInstruction();
 }
 
+#if VIREO_TYPE_Double
 VIREO_FUNCTION_SIGNATURE4(ArrayInterpolate, void, TypedArrayCoreRef, StaticType, void)
 {
     TypedArrayCoreRef arrayIn = _Param(1);
@@ -1591,6 +1592,7 @@ VIREO_FUNCTION_SIGNATURE4(ArrayThreshold, Double, TypedArrayCoreRef, Double, Int
     }
     return _NextInstruction();
 }
+#endif //VIREO_TYPE_Double
 
 struct ArrayInterleaveParamBlock : public VarArgInstruction
 {
@@ -1900,8 +1902,8 @@ DEFINE_VIREO_BEGIN(Array)
 
     DEFINE_VIREO_FUNCTION(ArrayReshape, "p(i(VarArgCount) o(Array) i(Array) i(Int32))")
     DEFINE_VIREO_FUNCTION(ArrayTranspose, "p(o(Array) i(Array))")
-    DEFINE_VIREO_FUNCTION(ArrayInterpolate, "p(o(*) i(Array) i(StaticTypeAndData))")
-    DEFINE_VIREO_FUNCTION(ArrayThreshold, "p(o(Double) i(Array) i(Double) i(Int32))")
+    //DEFINE_VIREO_FUNCTION(ArrayInterpolate, "p(o(*) i(Array) i(StaticTypeAndData))")
+    //DEFINE_VIREO_FUNCTION(ArrayThreshold, "p(o(Double) i(Array) i(Double) i(Int32))")
     DEFINE_VIREO_FUNCTION(ArrayInterleave, "p(i(VarArgCount) o(Array) i(Array))")
     DEFINE_VIREO_FUNCTION(ArrayDecimate, "p(i(VarArgCount) i(Array) o(Array))")
 

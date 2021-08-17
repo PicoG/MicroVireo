@@ -3191,7 +3191,7 @@ VIREO_FUNCTION_SIGNATURE5(GetSubElementFromPath, StaticType, void, StringRef, St
 void TypeManager::DumpTypeNameDictionary() {
     std::map<SubString, NamedTypeRef>::iterator iter = _typeNameDictionary.begin();
     while (iter != _typeNameDictionary.end()) {
-        gPlatform.IO.Printf("VIREO TYPE: %s\n", iter->first);
+        gPlatform.IO.Printf("VIREO TYPE: %s (%d)\n", iter->first, iter->second->TopAQSize());
         ++iter;
     }
 }

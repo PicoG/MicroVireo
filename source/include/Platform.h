@@ -9,6 +9,10 @@
 
 #include "DataTypes.h"
 
+#ifdef __rp2040__
+#include "stdio.h"
+#endif
+
 #if kVireoOS_emscripten
 #define rintf RINTF_UNDEFINED  // don't use rintf implementation on emscripten; it doesn't obey rounding modes correctly
 #define EMSCRIPTEN_NOOPT __attribute__((optnone))  // allow disabling optimizations that expose bugs in
@@ -30,7 +34,7 @@ class PlatformMemory {
     size_t _totalAllocated = 0;
  public:
     void* Malloc(size_t countAQ);
-    static void* Realloc(void* pBuffer, size_t countAQ);
+    void* Realloc(void* pBuffer, size_t countAQ);
     void Free(void* pBuffer);
     size_t TotalAllocated() const { return _totalAllocated; }
 };
@@ -43,15 +47,96 @@ class PlatformMemory {
   #define LOG_PLATFORM_MEM(message)
 #endif
 
+#define CMD_UNKNOWN       0x00
+
+//Device info commands
+#define CMD_VERSION       0x01 // picoG Firmware version
+#define CMD_PLATFORM      0x02 // Platform string
+#define CMD_BOARD         0x03 // Platform variant
+#define CMD_SERIAL        0x04 // Device unique identifier, variable length per platform
+#define CMD_ALIAS         0x05 // User-defined name for the device
+
+//Execution interaction commands
+#define CMD_ISEXEC        0x06 // 'T' if currently executing, 'F' otherwise
+#define CMD_RESET         0x07 // Reset type manager scope, will stop execution
+#define CMD_ABORT         0x08 // Stops current execution
+#define CMD_RUNMAIN       0x09 // Runs 'main' VI definition
+
+#define CMD_SKIPSTARTUP   0x0A // Intended to be sent at connection before engine runs flash stored app
+
+#if 1 //VIREO_VIA_PERSIST
+struct PersistedViaInfo {
+    uint8_t flags;  //PersistedViaFlags
+    int len;        //Length of Via source
+    char alias[64]; 
+};
+
+struct PersistedVia {
+    PersistedViaInfo info;
+    char *source;
+};
+
+//MSB is platform specific and used to know if configured
+//IE Pi Pico must be 0 for flags to be valid since
+//erasing a sector on Pico will read back all 1s
+enum PersistedViaFlags {
+    StoredVia       = 0x01,
+    RunAtStartup    = 0x02,
+    NA1             = 0x04,
+    NA2             = 0x08,
+    NA3             = 0x10,
+    NA4             = 0x20,
+    NA5             = 0x40,
+    PersistCfg      = 0x80
+};
+
+class PlatformPersist {
+public:
+    PlatformPersist();
+
+    bool LoadVia(PersistedVia *via);
+
+    uint8_t ClearVia();
+    
+    uint8_t StartVia();
+    uint8_t StoreViaChunk(char *start, int len);
+    uint8_t CancelVia();
+    uint8_t EndVia(bool runAtStartup);
+
+    bool HasVia();
+    bool HasStartup();
+
+    const char * CStr();
+
+private:
+
+    PersistedViaInfo _info; //Flags and meta for persisted Via source
+};
+#endif
+
 //------------------------------------------------------------
 //! Process level functions for stdio.
 class PlatformIO {
  public:
-    static void Print(Int32 len, ConstCStr str);
-    static void Print(ConstCStr str);
+    PlatformIO();
+    void Print(Int32 len, ConstCStr str);
+    void Print(ConstCStr str);
     void Printf(ConstCStr format, ...) const;
-    static void ReadFile(SubString *name, StringRef buffer);
-    static void ReadStdin(StringRef buffer);
+    void ReadFile(SubString *name, StringRef buffer);
+    void ReadStdin(StringRef buffer);
+    uint8_t checkCommand();
+
+private:
+    char _cmd[50];
+    int _cmdLen;
+    int _cmdMatch;
+    bool _readCmd;
+    bool _unreadCmd;
+    int _unreadI;
+
+    //returns true if a command was intercepted and fgetc needs to be repeated
+    char _fgetc(FILE *file);
+    void resetCmd();
 };
 
 //------------------------------------------------------------
@@ -87,7 +172,12 @@ class Platform {
     PlatformMemory  Mem;
     PlatformIO      IO;
     PlatformTimer   Timer;
+
+#if 1 //VIREO_VIA_PERSIST
+    PlatformPersist Persist;
+#endif
 };
+
 extern Platform gPlatform;
 
 }  // namespace Vireo

@@ -580,6 +580,8 @@ void RegisterForStaticEvents(VirtualInstrument *vi) {
         Int32 eventSpecCount = eventSpecType->SubElementCount();
         EventQueueID qID = kNotAQueueID;
         EventOracle::TheEventOracle().GetNewQueueObject(&qID, nullptr);
+        
+#if VIREO_TYPE_ControlRef
         // TODO(segaljared): remove this when we no longer use ControlRefNum
         for (Int32 eventSpecIndex = 0; eventSpecIndex < eventSpecCount; ++eventSpecIndex) {
             ControlRefNum controlRef = (ControlRefNum)eventSpecRef[eventSpecIndex].eventControlRef;
@@ -597,6 +599,8 @@ void RegisterForStaticEvents(VirtualInstrument *vi) {
                 }
             }
         }
+#endif
+
         eventInfo->eventStructInfo[eventStructIndex].staticQID = qID;
         eventInfo->eventStructInfo[eventStructIndex].setCount = 0;
     }

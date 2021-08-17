@@ -15,6 +15,8 @@ static struct {
 
 bool RunExec();
 
+bool SaveVia();
+
 }  // namespace Vireo
 
 int main()
@@ -25,54 +27,160 @@ int main()
 
     gPlatform.Setup();
     gShells._keepRunning = true;
-    //LOG_PLATFORM_MEM("Mem after init")
     
     //need to give time for USB init and enumeration
-    for (int i = 0; i < 200; ++i) {
+    for (int i = 0; i < 300; ++i) {
         sleep_ms(10);
     }
 
-    // Interactive mode is experimental.
-    // the core loop should be processed by by a vireo program
-    // once IO primitives are all there.
-    //gPlatform.IO.Print("Before RootShell\n");
+    //TODO: Remove load() command. store() and boot will automatically
+    // invoke equivalent load() functionality. load() functionality to invoke
+    // parser.
+
     gShells._pRootShell = TypeManager::New(nullptr);
-
-    //gPlatform.IO.Print("Before UserShell\n");
     gShells._pUserShell = TypeManager::New(gShells._pRootShell);
+        
+    gPlatform.IO.Print("\nChecking for startup Via...");
 
-    //gPlatform.IO.Print("Before Loop\n");
-    //while (gShells._keepRunning) {
+    PersistedVia via;
+
+    gPlatform.Persist.LoadVia(&via);
+
+    bool hasVia = gPlatform.Persist.HasStartup();
+    bool runStored = false;
+    bool doRepl = false;
+
+    if (hasVia) {
+        gPlatform.IO.Print("Found.\n");
+        gPlatform.IO.Print("Press any key to skip autorun...");
+
+        int c = getchar_timeout_us(3000000);
+        runStored = c == PICO_ERROR_TIMEOUT;
+
+        if (runStored) {
+            gPlatform.IO.Print("Running Startup Via.\n");
+        } else {
+            gPlatform.IO.Print("Skipped.\n");
+        }
+    } else {
+        gPlatform.IO.Print("No Via stored, starting shell.\n");
+    }
+
+    gPlatform.IO.Print("\n");
+
     while (true) {
-        gPlatform.IO.Print("VIREO> ");
+        doRepl = false;
+
+        if (!runStored) {
+            gPlatform.IO.Print("picoG> ");
+        }
+
         {
             TypeManagerScope scope(gShells._pUserShell);
-            //gPlatform.IO.Print("After Scope\n");
-            STACK_VAR(String, buffer);
-            //gPlatform.IO.Print("After Buffer\n");
-            //gPlatform.IO.Print(">");
-            //sleep_ms(10);
-            gPlatform.IO.ReadStdin(buffer.Value);
-            //gPlatform.IO.Print("After Stdin");
-            SubString input = buffer.Value->MakeSubStringAlias();
 
-            if (input.ComparePrefixCStr("dump()")) {
-                gShells._pRootShell->DumpTypeNameDictionary();
-                continue;
+            SubString input;
+
+            if (runStored) {
+                runStored = false;
+                input = SubString((uint8_t *)via.source, (uint8_t *)(via.source + via.info.len));
+                doRepl = true;
             } else {
+                STACK_VAR(String, buffer);
+
+                gPlatform.IO.ReadStdin(buffer.Value);
+                input = buffer.Value->MakeSubStringAlias();
+
+                if (input.ComparePrefixCStr("dump()")) {
+                    gShells._pRootShell->DumpTypeNameDictionary();
+                    continue;
+                } else if (input.ComparePrefixCStr("store()")) {
+                    if (SaveVia()) {
+                        gPlatform.IO.Print("\nOK\n");
+                    } else {
+                        gPlatform.IO.Print("\nStore Aborted!\n");
+                    }
+                } else if (input.ComparePrefixCStr("show()")) {
+                    gPlatform.IO.Print(gPlatform.Persist.CStr());
+                    gPlatform.IO.Print("\n");
+                } else if (input.ComparePrefixCStr("erase()")) {
+                    gPlatform.Persist.ClearVia();
+                    gPlatform.IO.Print("OK\n");
+                } else if (input.ComparePrefixCStr("load()")) {
+                    if (gPlatform.Persist.LoadVia(&via)) {
+                        gPlatform.IO.Print("OK\n");
+                    } else {
+                        gPlatform.IO.Print("NO VIA STORED!\n");
+                    }
+                } else if (input.ComparePrefixCStr("run()")) {
+                    if (gPlatform.Persist.HasVia()) {
+                        runStored = true;
+                        gPlatform.IO.Print("OK\n");
+                    } else {
+                        gPlatform.IO.Print("NO VIA LOADED!\n");
+                    }
+                } else if (input.ComparePrefixCStr("reset()")) {
+                    gShells._pUserShell->DeleteTypes(false);
+                } else if (input.ComparePrefixCStr("mem()")) {
+                    fprintf(stdout, "Vireo Used Memory: %d\n", gPlatform.Mem.TotalAllocated());
+                    fflush(stdout);
+                } else {
+                    doRepl = true;
+                }
+            }
+
+            if (doRepl) {
+                doRepl = false;
                 TDViaParser::StaticRepl(gShells._pUserShell, &input);
             }
         }
 
         bool exec = true;
         while (exec) {
-            //gPlatform.IO.Print("*\n");
             exec = RunExec();
         }
     }
 
     gPlatform.Shutdown();
     return 0;
+}
+
+bool Vireo::SaveVia() {
+    gPlatform.IO.Print("Saving Via to EOF\n");
+
+    PlatformPersist *p = &gPlatform.Persist;
+
+    p->StartVia();
+
+    char c = 0, last = 0;
+    bool inString = false;
+    bool complete = false;
+
+    char etx = 0x03; //Ctrl+C, abort without saving
+    char eof = 0x04; //Ctrl+D, finished
+
+    while (true) {
+        c = getchar();
+
+        if (c == etx) {
+            p->CancelVia();
+            return false;
+        } else if (c == eof) {
+            //
+            p->EndVia(RunAtStartup);
+            break;
+        } else {
+            if (c == 0x0D) c = 0x0A; //convert line ending
+
+            //StoreViaChunk can take several bytes at once but it buffers
+            //based on flash page size so it's fine to do single bytes
+            //which is convenient since that's how we're getting them.
+            p->StoreViaChunk(&c, 1);
+            //gPlatform.IO.Printf("%02x", c);
+            putchar(c);
+        }
+    }
+
+    return true;
 }
 
 //------------------------------------------------------------

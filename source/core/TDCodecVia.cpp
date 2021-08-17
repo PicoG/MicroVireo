@@ -338,8 +338,10 @@ TypeRef TDViaParser::ParseType(TypeRef patternType)
         type = ParseRefNumType();
     } else if (typeFunction.CompareCStr(tsEnqueueTypeToken) || typeFunction.CompareCStr("start")) {
         type = ParseEnqueue();
+#if VIREO_TYPE_ControlRef
     } else if (typeFunction.CompareCStr(tsControlReferenceToken)) {
         type = ParseControlReference();
+#endif
     } else {
         _string = save;
         type = ParseLiteral(patternType);
@@ -665,6 +667,7 @@ TypeRef TDViaParser::ParseRefNumType()
     return refnum;
 }
 //------------------------------------------------------------
+#if VIREO_TYPE_ControlRef
 TypeRef TDViaParser::ParseControlReference(void *pData) {
     SubString controlTagToken;
     TypeRef ctrlRefType = nullptr;
@@ -679,6 +682,7 @@ TypeRef TDViaParser::ParseControlReference(void *pData) {
     }
     if (!ctrlRefType)
         return BadType();
+
     if (pData) {
         ControlReferenceCreate((RefNumVal*)pData, _virtualInstrumentScope, controlTagToken);
         return ctrlRefType;
@@ -692,6 +696,8 @@ TypeRef TDViaParser::ParseControlReference(void *pData) {
     cdt = cdt->FinalizeDVT();
     return cdt;
 }
+#endif
+
 //------------------------------------------------------------
 TypeRef TDViaParser::ParseEnumType(SubString *token)
 {
@@ -1403,12 +1409,14 @@ Int32 TDViaParser::ParseData(TypeRef type, void* pData)
                 }
             }
             break;
+#if VIREO_TYPE_ControlRef
         case kEncoding_RefNum: {
             TokenTraits tt = _string.ReadToken(&token);
             if (tt == TokenTraits_SymbolName && token.CompareCStr(tsControlReferenceToken))
                 ParseControlReference(pData);
             }
             break;
+#endif
         default:
             LOG_EVENT(kHardDataError, "No parser for data type's encoding");
             return kLVError_ArgError;
@@ -2533,8 +2541,12 @@ void TDViaFormatter::FormatData(TypeRef type, void *pData)
                     _string->Append(name.Length(), (Utf8Char*)name.Begin());
                 else
                     _string->AppendCStr(tsRefNumTypeToken);
-                if (name.CompareCStr(tsControlRefNumToken))
+                if (name.CompareCStr(tsControlRefNumToken)) {
+#if VIREO_TYPE_ControlRef
                     ControlReferenceAppendDescription(_string, refnum);
+#endif
+                }
+
                 _string->Append('(');
                 FormatInt(kEncoding_RefNum, refnum);
                 _string->Append(')');

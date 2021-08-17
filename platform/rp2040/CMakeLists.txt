@@ -34,7 +34,7 @@ get_filename_component(VIREO_DIR "../../source" ABSOLUTE)
 
 # Default vireo board to Pico if not set
 if(NOT VIREO_BOARD)
-    set(VIREO_BOARD PICO)
+    set(VIREO_BOARD pico)
 endif()
 
 # Set the board directory and check that it exists.
@@ -118,6 +118,7 @@ target_compile_definitions(vireo
 target_sources(vireo PRIVATE
     main.cpp
     io/pico_gpio.cpp
+    io/pico_persist.cpp
     ${VIREO_SOURCE_CORE}
     ${VIREO_SOURCE_IO}
 )
@@ -142,10 +143,17 @@ target_compile_definitions(vireo
     PUBLIC VIREO_DEBUG_EXEC_PRINT_INSTRS=0
 
     PUBLIC VIREO_TYPE_UInt32=1
+    #PUBLIC VIREO_TYPE_UInt16=1
     PUBLIC VIREO_TYPE_Int32=1
-    PUBLIC VIREO_TYPE_Double=1
-    PUBLIC VIREO_TYPE_ArrayND=1
+    #PUBLIC VIREO_TYPE_Double=1
+    PUBLIC VIREO_TYPE_Events=1
+    #PUBLIC VIREO_TYPE_ControlRef=1
+    #PUBLIC VIREO_TYPE_JSRefs=1
+    #PUBLIC VIREO_TYPE_ArrayND=1
     PUBLIC VIREO_VIA_FORMATTER=1
     PUBLIC VIREO_POSIX_FILEIO=1
+    PUBLIC VIREO_TRACK_MALLOC=1
+
+    PUBLIC VIREO_VIA_PERSIST=1 # Provision for persisting VIA source to device for autorun on boot
     #PRIVATE kVireoOS_linuxU=1
 )

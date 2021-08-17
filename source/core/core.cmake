@@ -4,9 +4,9 @@
 set (VIREO_SOURCE_CORE
     ${VIREO_CORE_DIR}/Array.cpp
     ${VIREO_CORE_DIR}/Assert.cpp
-    ${VIREO_CORE_DIR}/CEntryPoints.cpp
-    ${VIREO_CORE_DIR}/CloseReference.cpp
-    ${VIREO_CORE_DIR}/ControlRef.cpp
+    #${VIREO_CORE_DIR}/CEntryPoints.cpp
+    #${VIREO_CORE_DIR}/CloseReference.cpp
+    #${VIREO_CORE_DIR}/ControlRef.cpp
     ${VIREO_CORE_DIR}/DataQueue.cpp
     #${VIREO_CORE_DIR}/Date.cpp
     ${VIREO_CORE_DIR}/DualTypeConversion.cpp
@@ -17,8 +17,8 @@ set (VIREO_SOURCE_CORE
     ${VIREO_CORE_DIR}/Events.cpp
     ${VIREO_CORE_DIR}/ExecutionContext.cpp
     ${VIREO_CORE_DIR}/GenericFunctions.cpp
-    ${VIREO_CORE_DIR}/JavaScriptDynamicRef.cpp
-    ${VIREO_CORE_DIR}/JavaScriptStaticRef.cpp
+    #${VIREO_CORE_DIR}/JavaScriptDynamicRef.cpp
+    #${VIREO_CORE_DIR}/JavaScriptStaticRef.cpp
     ${VIREO_CORE_DIR}/MatchPat.cpp
     ${VIREO_CORE_DIR}/Math.cpp
     ${VIREO_CORE_DIR}/NumericString.cpp

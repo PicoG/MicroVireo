@@ -12,6 +12,7 @@
 #include <cstdio>
 
 #include "TypeAndDataManager.h"
+#include "TypeDefiner.h"
 
 #if kVireoOS_windows
   #define NOMINMAX
@@ -46,6 +47,13 @@ std::set <void*> gAllocSet;
 
 #if defined(__rp2040__)
 #include <pico/time.h>
+#include <pico/unique_id.h>
+
+static const char picog_platform[] = "rp2040";
+static const char picog_board[] = "pico";
+#else
+static const char picog_platform[] = "unknown";
+static const char picog_board[] = "none";
 #endif
 
 #if DEBUG_MEM
@@ -100,6 +108,12 @@ namespace Vireo {
 
 Platform gPlatform;
 
+#define CMD_HEADER_LEN 8
+
+const char cmdHeader[] = {
+    0xF4, 0xF5, 0xF4, 0xF5, 0xF4, 0xF5, 0x00, 0x00
+};
+
 //============================================================
 #if kVireoOS_windows
 LONG WINAPI UnhandledExceptionFilter(_EXCEPTION_POINTERS *lpTopLevelExceptionFilter) {
@@ -136,15 +150,17 @@ void* PlatformMemory::Malloc(size_t countAQ)
 {
 #if DEBUG_MEM
     usedMem += countAQ;
-    printf("MALLOC: %d\tTotal: %d\n", countAQ, usedMem);
+    //printf("MALLOC: %d\tTotal: %d\n", countAQ, usedMem);
 #endif
 
 #if defined(VIREO_TRACK_MALLOC)
     size_t logicalSize = countAQ;
     countAQ += sizeof(size_t);
 #endif
+
     void* pBuffer = malloc(countAQ);
     if (pBuffer) {
+        
 #if VIREO_JOURNAL_ALLOCS
         gAllocSet.insert(pBuffer);
 #endif
@@ -225,6 +241,14 @@ void DumpPlatformMemoryLeaks() {  // to be called from debugger
     }
 }
 #endif
+
+PlatformIO::PlatformIO() {
+    _cmdLen = 0;
+    _cmdMatch = 0;
+    _readCmd = false;
+    _unreadI = 0;
+}
+
 //============================================================
 //! Static memory deallocator used for all TM memory management.
 void PlatformIO::Print(ConstCStr str)
@@ -290,6 +314,138 @@ char sampleProgram[] =
     ") ) > ) ";
 #endif
 
+uint8_t PlatformIO::checkCommand() {
+    return 0;
+}
+
+char PlatformIO::_fgetc(FILE *file) {
+    char c;
+    //Had a header mismatch and need to give all the bytes back to the app
+    if (_unreadCmd) {
+        c = _cmd[_unreadI];
+        _unreadI++;
+        if (_unreadI == _cmdLen) {
+            _unreadCmd = false;
+        }
+    } else {
+        bool readByte = true;
+        while (readByte) {
+
+            c = fgetc(file);
+
+            //If first byte doesn't match command header, shortcut return
+            if (c != cmdHeader[0]) {
+                return c;
+            }
+
+            //from this point on we've matched at least 1 byte of the header
+
+            //Reset number of bytes filled into buffer
+            _cmdLen = 0;
+
+            //read bytes until we either match the header or don't
+            //storing the bytes in a buffer in case of mismatch and need to
+            //give those back to the app so we affect it as little as possible
+            while (c == cmdHeader[_cmdLen]) {
+                _cmd[_cmdLen] = c;
+                _cmdLen++;
+
+                if (_cmdLen >= CMD_HEADER_LEN) {
+                    //matched the header, prepare to read command
+                    //once we match the header we'll reuse those bytes in the buffer to read the rest
+                    _readCmd = true;
+                    _cmdLen = 0;
+                    break;
+                }
+                
+                c = fgetc(file);
+            }
+
+            if (_readCmd) {
+                //Read command ID byte
+                uint8_t cmd = fgetc(file);
+
+                //Todo: Array of cmd handlers?
+                switch (cmd) {
+                    //Device info commands
+                    case CMD_VERSION:
+                        //TODO report picoG FW version
+                        fprintf(stdout, "0.0.0\n");
+                        break;
+
+                    case CMD_PLATFORM:
+                        fprintf(stdout, "%s\n", picog_platform);
+                        break;
+
+                    case CMD_BOARD:
+                        fprintf(stdout, "%s\n", picog_board);
+                        break;
+
+                    case CMD_SERIAL:
+    #ifdef __rp2040__
+                        //use cmd buffer temporarily for serial # copy
+                        _cmdLen = PICO_UNIQUE_BOARD_ID_SIZE_BYTES * 2 + 1;
+                        pico_get_unique_board_id_string(_cmd, _cmdLen);
+                        fprintf(stdout, "%s\n", _cmd);
+    #endif
+                        break;
+
+                    case CMD_ALIAS:
+                        //TODO Alias
+                        fprintf(stdout, "MyPico\n");
+                        break;
+
+                    case CMD_ISEXEC:
+                        fprintf(stdout, "F\n");
+                        break;
+
+                    case CMD_RESET:
+                        _cmd[0] = 'r';
+                        _cmd[1] = 'e';
+                        _cmd[2] = 's';
+                        _cmd[3] = 'e';
+                        _cmd[4] = 't';
+                        _cmd[5] = '(';
+                        _cmd[6] = ')';
+                        _cmd[7] = '\n';
+                        _cmdLen = 8;
+
+                        fprintf(stdout, "OK\n");
+                        break;
+
+                    case CMD_ABORT:
+                        fprintf(stdout, "FAIL\n");
+                        break;
+
+                    case CMD_RUNMAIN:
+                        fprintf(stdout, "FAIL\n");
+                        break;
+                }
+
+                fflush(stdout);
+
+                //Since we intercepted and acted on a command need to read another byte
+                readByte = true;
+
+            } else {
+                //store the last read byte
+                _cmd[_cmdLen++] = c;
+
+                //At this point in the code we should always have at least 2 bytes in the buffer:
+                //the first byte matched and the second byte didn't (or more matches)
+                //we return the first byte we read and 
+                c = _cmd[0];
+                _unreadI = 1;
+
+                //Don't need to read another byte, we have data to return to app
+                readByte = false;
+            }
+        }
+    }
+
+    return c;
+}
+
 void PlatformIO::ReadStdin(StringRef buffer)
 {
     buffer->Resize1D(0);
@@ -297,7 +453,7 @@ void PlatformIO::ReadStdin(StringRef buffer)
     buffer->AppendCStr(sampleProgram);
 #else
     buffer->Reserve(5000);
-    char c = fgetc(stdin);
+    char c = _fgetc(stdin);
     if (c == '\r') {
         fputc('\n', stdout);
     } else {
@@ -589,4 +745,17 @@ void PlatformTimer::SleepMilliseconds(Int64 milliseconds) {
 #endif
 }
 #endif  // !kVireoOS_emscripten
+
+#if VIREO_TRACK_MALLOC
+VIREO_FUNCTION_SIGNATURE1(MemUsed, UInt32) {
+    _Param(0) = gPlatform.Mem.TotalAllocated();
+
+    return _NextInstruction();
+}
+
+DEFINE_VIREO_BEGIN(VPlatform)
+    DEFINE_VIREO_FUNCTION(MemUsed, "p(o(UInt32))")
+DEFINE_VIREO_END()
+#endif //VIREO_TRACK_MALLOC
+
 }  // namespace Vireo
