@@ -163,13 +163,12 @@ VIREO_FUNCTION_SIGNATURE2(FileSize, FileHandle, Int32)
 }
 #endif  // VIREO_POSIX_FILESYSTEM
 //------------------------------------------------------------
-VIREO_FUNCTION_SIGNATURE4(StreamRead, FileHandle, TypedArrayCoreRef, Int32, Int32)
+VIREO_FUNCTION_SIGNATURE4(StreamRead, FileHandle, Int32, TypedArrayCoreRef, Int32)
 {
     FileHandle handle = _Param(0);
-    TypedArrayCoreRef array = _Param(1);
-    Int32 numElts = _Param(2);
+    TypedArrayCoreRef array = _Param(2);
+    Int32 numElts = _Param(1);
     Int32 bytesToRead = 0;
-
     if (numElts == -1) {
         struct stat fileInfo;
         fstat(handle, &fileInfo);
@@ -349,6 +348,7 @@ VIREO_FUNCTION_SIGNATURE2(ListDirectory, StringRef, TypedArray1D<StringRef>*)
 // correct API is used to pick up the parameter.
 
 #if defined(VIREO_VIA_FORMATTER)
+
 //------------------------------------------------------------
 struct PrintfParamBlock : VarArgInstruction
 {
@@ -435,7 +435,7 @@ DEFINE_VIREO_BEGIN(FileSystem)
 #endif
     //--------
     DEFINE_VIREO_FUNCTION(StreamSetPosition, "p(i(FileHandle)i(Int32)i(Int32)o(Int32))")
-    DEFINE_VIREO_FUNCTION(StreamRead, "p(i(FileHandle)o(String)o(Int32)o(Int32))")
+    DEFINE_VIREO_FUNCTION(StreamRead, "p(i(FileHandle)i(Int32)o(String)o(Int32))")
     DEFINE_VIREO_FUNCTION(StreamWrite, "p(i(FileHandle)i(String)i(Int32)o(Int32))")
 
 #ifdef VIREO_FILESYSTEM_DIRLIST

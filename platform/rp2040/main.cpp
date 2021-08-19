@@ -3,6 +3,7 @@
 #include "DebuggingToggles.h"
 
 #include <stdio.h>
+#include <pico/stdio.h>
 #include <pico/stdlib.h>
 
 namespace Vireo {
@@ -17,6 +18,8 @@ bool RunExec();
 
 bool SaveVia();
 
+void ShowVia();
+
 }  // namespace Vireo
 
 int main()
@@ -24,6 +27,11 @@ int main()
     using namespace Vireo;  // NOLINT(build/namespaces)
 
     stdio_init_all();
+
+    //configure input for skipping startup
+    gpio_init(22);
+    gpio_set_dir(22, false);
+    gpio_set_pulls(22, false, true);
 
     gPlatform.Setup();
     gShells._keepRunning = true;
@@ -54,8 +62,14 @@ int main()
         gPlatform.IO.Print("Found.\n");
         gPlatform.IO.Print("Press any key to skip autorun...");
 
-        int c = getchar_timeout_us(3000000);
-        runStored = c == PICO_ERROR_TIMEOUT;
+        if (!gpio_get(22)) {
+            int c = getchar_timeout_us(3000000);
+            runStored = c == PICO_ERROR_TIMEOUT;
+
+            if (runStored && gpio_get(22)) {
+                runStored = false;
+            }
+        }
 
         if (runStored) {
             gPlatform.IO.Print("Running Startup Via.\n");
@@ -104,8 +118,7 @@ int main()
                         gPlatform.IO.Print("\nStore Aborted!\n");
                     }
                 } else if (input.ComparePrefixCStr("show()")) {
-                    gPlatform.IO.Print(gPlatform.Persist.CStr());
-                    gPlatform.IO.Print("\n");
+                    ShowVia();
                 } else if (input.ComparePrefixCStr("erase()")) {
                     gPlatform.Persist.ClearVia();
                     gPlatform.IO.Print("OK\n");
@@ -146,6 +159,27 @@ int main()
 
     gPlatform.Shutdown();
     return 0;
+}
+
+void Vireo::ShowVia() {
+    gPlatform.IO.Print(gPlatform.Persist.CStr());
+    gPlatform.IO.Print("\n");
+
+    char * c = gPlatform.Persist.CStr();
+
+    int line = 0;
+    while (*c) {
+        if (*c == '\n') {
+            gPlatform.IO.Printf("\n%04d ", ++line);
+            fflush(stdout);
+        } else {
+            gPlatform.IO.Print(*c);
+        }
+
+        c++;
+    }
+
+    gPlatform.IO.Print("\n\n");
 }
 
 bool Vireo::SaveVia() {

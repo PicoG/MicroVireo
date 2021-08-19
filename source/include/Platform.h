@@ -106,7 +106,7 @@ public:
     bool HasVia();
     bool HasStartup();
 
-    const char * CStr();
+    char * CStr();
 
 private:
 

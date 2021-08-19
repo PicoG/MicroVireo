@@ -142,7 +142,7 @@ uint8_t PlatformPersist::StoreViaChunk(char *buf, int len) {
     return 0;
 }
 
-const char * PlatformPersist::CStr() {
+char * PlatformPersist::CStr() {
     return PICOG_VIA_SRC();
 }
 
