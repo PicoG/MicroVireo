@@ -249,6 +249,10 @@ PlatformIO::PlatformIO() {
     _unreadI = 0;
 }
 
+void PlatformIO::Print(char c) {
+    fwrite(&c, 1, 1, stdout);
+}
+
 //============================================================
 //! Static memory deallocator used for all TM memory management.
 void PlatformIO::Print(ConstCStr str)
@@ -597,7 +601,12 @@ void PlatformIO::ReadStdin(StringRef buffer)
     buffer->AppendCStr(sampleProgram);
 #else
     buffer->Reserve(5000);
-    char c = _fgetc(stdin);
+
+    //following commented line supports CMD protocol handling, disable until fixed
+    //char c = _fgetc(stdin);
+
+    char c = fgetc(stdin);
+
     if (c == '\r') {
         fputc('\n', stdout);
     } else {

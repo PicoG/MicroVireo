@@ -121,6 +121,7 @@ class PlatformIO {
     PlatformIO();
     void Print(Int32 len, ConstCStr str);
     void Print(ConstCStr str);
+    void Print(char c);
     void Printf(ConstCStr format, ...) const;
     void ReadFile(SubString *name, StringRef buffer);
     void ReadStdin(StringRef buffer);

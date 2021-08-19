@@ -183,7 +183,8 @@ void Vireo::ShowVia() {
 }
 
 bool Vireo::SaveVia() {
-    gPlatform.IO.Print("Saving Via to EOF\n");
+    gPlatform.IO.Print("Existing Via invalidated.\n");
+    gPlatform.IO.Print("Saving Via to EOF (EOF = Ctrl+D, Ctrl+C to cancel)\n");
 
     PlatformPersist *p = &gPlatform.Persist;
 
