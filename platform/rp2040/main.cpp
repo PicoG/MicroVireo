@@ -91,6 +91,7 @@ int main()
 
         {
             TypeManagerScope scope(gShells._pUserShell);
+            STACK_VAR(String, buffer);
 
             SubString input;
 
@@ -99,7 +100,6 @@ int main()
                 input = SubString((uint8_t *)via.source, (uint8_t *)(via.source + via.info.len));
                 doRepl = true;
             } else {
-                STACK_VAR(String, buffer);
 
                 gPlatform.IO.ReadStdin(buffer.Value);
                 input = buffer.Value->MakeSubStringAlias();
@@ -147,6 +147,7 @@ int main()
 
             if (doRepl) {
                 doRepl = false;
+
                 TDViaParser::StaticRepl(gShells._pUserShell, &input);
             }
         }
