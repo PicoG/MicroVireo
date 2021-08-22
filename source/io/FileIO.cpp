@@ -370,6 +370,17 @@ VIREO_FUNCTION_SIGNATUREV(Printf, PrintfParamBlock)
     gPlatform.IO.Print(tempString.Value->Length(), (const char*)tempString.Value->Begin());
     return _NextInstruction();
 }
+
+VIREO_FUNCTION_SIGNATURE2(Print, StaticType, void) {
+    STACK_VAR(String, tempString);
+    if (tempString.Value) {
+        TDViaFormatter formatter(tempString.Value, false);
+        formatter.FormatData(_ParamPointer(0), _ParamPointer(1));
+        
+        gPlatform.IO.Print(tempString.Value->Length(), (ConstCStr)tempString.Value->Begin());
+    }
+    return _NextInstruction();
+}
 //------------------------------------------------------------
 VIREO_FUNCTION_SIGNATURE2(Println, StaticType, void)
 {
@@ -419,6 +430,7 @@ DEFINE_VIREO_BEGIN(FileSystem)
     DEFINE_VIREO_VALUE(StdErr, STDERR_FILENO, "FileHandle")
     // Primitives
 #if defined(VIREO_VIA_FORMATTER)
+    DEFINE_VIREO_FUNCTION(Print, "p(i(StaticTypeAndData))")
     DEFINE_VIREO_FUNCTION(Println, "p(i(StaticTypeAndData))")
     DEFINE_VIREO_FUNCTION(Printf, "p(i(VarArgCount)i(String)i(StaticTypeAndData))")
 #endif

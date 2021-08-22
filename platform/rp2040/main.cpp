@@ -14,6 +14,8 @@ static struct {
     Boolean _keepRunning;
 } gShells;
 
+static const char * runStr = "enqueue(main)\n";
+
 bool RunExec();
 
 bool SaveVia();
@@ -26,6 +28,8 @@ int main()
 {
     using namespace Vireo;  // NOLINT(build/namespaces)
 
+    gPlatform.IO.InitStatusLED();
+
     stdio_init_all();
 
     //configure input for skipping startup
@@ -35,10 +39,14 @@ int main()
 
     gPlatform.Setup();
     gShells._keepRunning = true;
+
+    bool status = false;
     
     //need to give time for USB init and enumeration
-    for (int i = 0; i < 300; ++i) {
-        sleep_ms(10);
+    for (int i = 0; i < 8; ++i) {
+        sleep_ms(200);
+        status = !status;
+        gPlatform.IO.StatusLED(status);
     }
 
     //TODO: Remove load() command. store() and boot will automatically
@@ -55,12 +63,14 @@ int main()
     gPlatform.Persist.LoadVia(&via);
 
     bool hasVia = gPlatform.Persist.HasStartup();
+    bool loadStored = false;
     bool runStored = false;
     bool doRepl = false;
 
     if (hasVia) {
         gPlatform.IO.Print("Found.\n");
         gPlatform.IO.Print("Press any key to skip autorun...");
+        gPlatform.IO.StatusLED(true);
 
         if (!gpio_get(22)) {
             int c = getchar_timeout_us(3000000);
@@ -70,6 +80,8 @@ int main()
                 runStored = false;
             }
         }
+
+        gPlatform.IO.StatusLED(false);
 
         if (runStored) {
             gPlatform.IO.Print("Running Startup Via.\n");
@@ -85,7 +97,7 @@ int main()
     while (true) {
         doRepl = false;
 
-        if (!runStored) {
+        if (!runStored && !loadStored) {
             gPlatform.IO.Print("picoG> ");
         }
 
@@ -95,9 +107,14 @@ int main()
 
             SubString input;
 
-            if (runStored) {
-                runStored = false;
+            if (loadStored) {
+                //loadStored is cleared after REPL so we can reply with OK
+                //loadStored = false;
                 input = SubString((uint8_t *)via.source, (uint8_t *)(via.source + via.info.len));
+                doRepl = true;
+            } else if (runStored) {
+                //runStored = false;
+                input = SubString(runStr);
                 doRepl = true;
             } else {
 
@@ -123,15 +140,10 @@ int main()
                     gPlatform.Persist.ClearVia();
                     gPlatform.IO.Print("OK\n");
                 } else if (input.ComparePrefixCStr("load()")) {
-                    if (gPlatform.Persist.LoadVia(&via)) {
-                        gPlatform.IO.Print("OK\n");
-                    } else {
-                        gPlatform.IO.Print("NO VIA STORED!\n");
-                    }
+                    loadStored = true;
                 } else if (input.ComparePrefixCStr("run()")) {
                     if (gPlatform.Persist.HasVia()) {
                         runStored = true;
-                        gPlatform.IO.Print("OK\n");
                     } else {
                         gPlatform.IO.Print("NO VIA LOADED!\n");
                     }
@@ -149,6 +161,13 @@ int main()
                 doRepl = false;
 
                 TDViaParser::StaticRepl(gShells._pUserShell, &input);
+
+                if (loadStored || runStored) {
+                    loadStored = false;
+                    runStored = false;
+                    //Send OK if we made it successfully past load() action
+                    gPlatform.IO.Print("OK\n");
+                }
             }
         }
 
@@ -186,6 +205,7 @@ void Vireo::ShowVia() {
 bool Vireo::SaveVia() {
     gPlatform.IO.Print("Existing Via invalidated.\n");
     gPlatform.IO.Print("Saving Via to EOF (EOF = Ctrl+D, Ctrl+C to cancel)\n");
+    gPlatform.IO.Print("OK\n");
 
     PlatformPersist *p = &gPlatform.Persist;
 

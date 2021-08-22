@@ -125,6 +125,8 @@ class PlatformIO {
     void Printf(ConstCStr format, ...) const;
     void ReadFile(SubString *name, StringRef buffer);
     void ReadStdin(StringRef buffer);
+    void InitStatusLED();
+    void StatusLED(bool val);
     uint8_t checkCommand();
 
 private:

@@ -1,7 +1,10 @@
 //Get Platform.h from DataTypes.h 
 #include "DataTypes.h"
 
-#include <pico/stdio.h>
+//#include <pico/stdio.h>
+#include <pico/stdlib.h>
+
+const uint led = 25;
 
 namespace Vireo {
 
@@ -17,6 +20,15 @@ int PlatformIO::_getchar_timeout_us(uint32_t timeout_us) {
 #endif
 
     return c;
+}
+
+void PlatformIO::InitStatusLED() {
+    gpio_init(led);
+    gpio_set_dir(led, true);
+}
+
+void PlatformIO::StatusLED(bool val) {
+    gpio_put(led, val);
 }
 
 } //namespace Vireo

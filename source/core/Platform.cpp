@@ -600,7 +600,7 @@ void PlatformIO::ReadStdin(StringRef buffer)
 #if defined(VIREO_EMBEDDED_EXPERIMENT)
     buffer->AppendCStr(sampleProgram);
 #else
-    buffer->Reserve(5000);
+    buffer->Reserve(300);
 
     //following commented line supports CMD protocol handling, disable until fixed
     //char c = _fgetc(stdin);
