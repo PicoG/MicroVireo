@@ -83,6 +83,8 @@ int main()
 
         gPlatform.IO.StatusLED(false);
 
+        loadStored = runStored;
+
         if (runStored) {
             gPlatform.IO.Print("Running Startup Via.\n");
         } else {
@@ -110,10 +112,12 @@ int main()
             if (loadStored) {
                 //loadStored is cleared after REPL so we can reply with OK
                 //loadStored = false;
+                gPlatform.IO.Print("Loading Stored Via...");
                 input = SubString((uint8_t *)via.source, (uint8_t *)(via.source + via.info.len));
                 doRepl = true;
             } else if (runStored) {
                 //runStored = false;
+                gPlatform.IO.Print("Running loaded Via...");
                 input = SubString(runStr);
                 doRepl = true;
             } else {
@@ -149,6 +153,7 @@ int main()
                     }
                 } else if (input.ComparePrefixCStr("reset()")) {
                     gShells._pUserShell->DeleteTypes(false);
+                    gPlatform.IO.Print("OK\n");
                 } else if (input.ComparePrefixCStr("mem()")) {
                     fprintf(stdout, "Vireo Used Memory: %d\n", gPlatform.Mem.TotalAllocated());
                     fflush(stdout);
@@ -162,10 +167,12 @@ int main()
 
                 TDViaParser::StaticRepl(gShells._pUserShell, &input);
 
-                if (loadStored || runStored) {
+                if (loadStored) {
                     loadStored = false;
-                    runStored = false;
                     //Send OK if we made it successfully past load() action
+                    gPlatform.IO.Print("OK\n");
+                } else if (runStored) {
+                    runStored = false;
                     gPlatform.IO.Print("OK\n");
                 }
             }
