@@ -7,6 +7,7 @@
 #include <pico/stdlib.h>
 
 #include <picog/version.h>
+#include <pico/unique_id.h>
 
 namespace Vireo {
 
@@ -165,6 +166,12 @@ int main()
                     fflush(stdout);
                 } else if (input.ComparePrefixCStr("ver()")) {
                     gPlatform.IO.Printf("%s\n%s\nOK\n", PICOG_VERSION, PICOG_VERSION_TS);
+                } else if (input.ComparePrefixCStr("id()")) {
+                    uint32_t len = PICO_UNIQUE_BOARD_ID_SIZE_BYTES * 2 + 1;
+                    char id[PICO_UNIQUE_BOARD_ID_SIZE_BYTES * 2 + 1];
+                    
+                    pico_get_unique_board_id_string(id, len);
+                    gPlatform.IO.Printf("%s\nOK\n", id);
                 } else {
                     doRepl = true;
                 }
