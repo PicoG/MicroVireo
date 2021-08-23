@@ -75,7 +75,7 @@ int main()
         gPlatform.IO.StatusLED(true);
 
         if (!gpio_get(22)) {
-            int c = getchar_timeout_us(3000000);
+            int c = getchar_timeout_us(2000000);
             runStored = c == PICO_ERROR_TIMEOUT;
 
             if (runStored && gpio_get(22)) {
