@@ -56,11 +56,30 @@ include(${VIREO_DIR}/vireo.cmake)
 # Brings in the Pi Pico SDK, needed before declaring project
 include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
 
+#include (../picog/version_build.cmake)
+
 project(Vireo)
 
 pico_sdk_init()
 
 add_executable(vireo)
+
+get_filename_component(BUILD_INC_PATH "../picog/build_increment.cmake" ABSOLUTE)
+
+add_custom_target(picoG_Version)
+
+target_sources(picoG_Version PRIVATE
+    ../picog/include/picog/version.h
+)
+
+add_custom_command(
+    TARGET picoG_Version
+    PRE_BUILD
+    COMMAND ${CMAKE_COMMAND}
+        -P "${BUILD_INC_PATH}"
+)
+
+add_dependencies(vireo picoG_Version)
 
 # Creates UF2 file and other debugging outputs
 pico_add_extra_outputs(vireo)
@@ -124,8 +143,9 @@ target_sources(vireo PRIVATE
     ${VIREO_SOURCE_IO}
 )
 
-target_include_directories(vireo PUBLIC
-    ${VIREO_INCLUDE}
+target_include_directories(vireo
+    PUBLIC ${VIREO_INCLUDE}
+    PUBLIC ../picog/include
 )
 
 # These are the components we're using from the pico-sdk

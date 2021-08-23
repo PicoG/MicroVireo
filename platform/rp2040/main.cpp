@@ -6,6 +6,8 @@
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
 
+#include <picog/version.h>
+
 namespace Vireo {
 
 static struct {
@@ -139,7 +141,11 @@ int main()
                         gPlatform.IO.Print("\nStore Aborted!\n");
                     }
                 } else if (input.ComparePrefixCStr("show()")) {
-                    ShowVia();
+                    if (gPlatform.Persist.HasVia()) {
+                        ShowVia();
+                    } else {
+                        gPlatform.IO.Print("NO VIA LOADED!\n");
+                    }
                 } else if (input.ComparePrefixCStr("erase()")) {
                     gPlatform.Persist.ClearVia();
                     gPlatform.IO.Print("OK\n");
@@ -157,6 +163,9 @@ int main()
                 } else if (input.ComparePrefixCStr("mem()")) {
                     fprintf(stdout, "Vireo Used Memory: %d\n", gPlatform.Mem.TotalAllocated());
                     fflush(stdout);
+                } else if (input.ComparePrefixCStr("ver()")) {
+                    gPlatform.IO.Print(PICOG_VERSION);
+                    gPlatform.IO.Print("\nOK\n");
                 } else {
                     doRepl = true;
                 }
@@ -165,15 +174,23 @@ int main()
             if (doRepl) {
                 doRepl = false;
 
-                TDViaParser::StaticRepl(gShells._pUserShell, &input);
+                NIError e = TDViaParser::StaticRepl(gShells._pUserShell, &input);
 
                 if (loadStored) {
                     loadStored = false;
                     //Send OK if we made it successfully past load() action
-                    gPlatform.IO.Print("OK\n");
+                    if (e) {
+                        gPlatform.IO.Print("FAILED\n");
+                    } else {
+                        gPlatform.IO.Print("Loaded OK\n");
+                    }
                 } else if (runStored) {
                     runStored = false;
-                    gPlatform.IO.Print("OK\n");
+                    if (e) {
+                        gPlatform.IO.Print("FAILED\n");
+                    } else {
+                        gPlatform.IO.Print("Loaded OK\n");
+                    }
                 }
             }
         }
