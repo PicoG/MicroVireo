@@ -164,8 +164,7 @@ int main()
                     fprintf(stdout, "Vireo Used Memory: %d\n", gPlatform.Mem.TotalAllocated());
                     fflush(stdout);
                 } else if (input.ComparePrefixCStr("ver()")) {
-                    gPlatform.IO.Print(PICOG_VERSION);
-                    gPlatform.IO.Print("\nOK\n");
+                    gPlatform.IO.Printf("%s\n%s\nOK\n", PICOG_VERSION, PICOG_VERSION_TS);
                 } else {
                     doRepl = true;
                 }
