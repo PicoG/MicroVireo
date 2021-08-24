@@ -7,31 +7,6 @@
 #Match the same minimum version specified by pico-sdk
 cmake_minimum_required(VERSION 3.13)
 
-set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# Set build type to reduce firmware size
-# Used by pico-sdk
-if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE MinSizeRel)
-endif()
-
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 17)
-
-#See if PICK_SDK_PATH already defined by environment, otherwise set it to default
-if (DEFINED ENV{PICO_SDK_PATH})
-    set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})
-else ()
-    #default to looking for pico-sdk as a sibling of the Vireo folder
-    get_filename_component(PICO_SDK_PATH "../../../pico-sdk" ABSOLUTE)
-    if (NOT EXISTS ${PICO_SDK_PATH}/pico_sdk_init.cmake)
-        message(FATAL_ERROR "PICO_SDK_PATH variable not set in environment.")
-    endif()
-endif()
-
-#determine vireo source root
-get_filename_component(VIREO_DIR "../../source" ABSOLUTE)
-
 if(NOT VIREO_PLATFORM)
     set(VIREO_PLATFORM rp2040)
 endif()
@@ -41,41 +16,21 @@ if(NOT VIREO_BOARD)
     set(VIREO_BOARD pico)
 endif()
 
-# Set the board directory and check that it exists.
-if(NOT VIREO_BOARD_DIR)
-    set(VIREO_BOARD_DIR ${CMAKE_SOURCE_DIR}/boards/${VIREO_BOARD})
-endif()
-if(NOT EXISTS ${VIREO_BOARD_DIR}/vireoboard.cmake)
-    message(FATAL_ERROR "Invalid VIREO_BOARD specified: ${VIREO_BOARD}")
-endif()
-
-# Include board config which brings in board specific pinouts and peripherals
-include(${VIREO_BOARD_DIR}/vireoboard.cmake) 
-
-
-# Include the configuration for vireo and the main vireo source
-include(vireo_config.cmake)
-include(${VIREO_DIR}/vireo.cmake)
+#include all the common config for building picoG firmware
+include (../picog/picog.cmake)
 
 # Brings in the Pi Pico SDK, needed before declaring project
 include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
 
-include (../picog/picog.cmake)
-
-set(PICOG_TARGET "picoG_${VIREO_PLATFORM}_${VIREO_BOARD}_${PICOG_VERSION}")
-
 project(picoG)
-
 pico_sdk_init()
 
-add_executable(${PICOG_TARGET})
-
-set_picog_build(${PICOG_TARGET})
+create_picog_build()
 
 # Creates UF2 file and other debugging outputs
 pico_add_extra_outputs(${PICOG_TARGET})
 
-message("\nConfiguring Vireo Engine build\n")
+message("\nConfiguring rp2040 Engine build\n")
 
 # We expect RP2040_STDIO to be set to 'usb', 'uart', or 'none'
 # If not defined we default to usb.
@@ -125,13 +80,6 @@ target_sources(${PICOG_TARGET} PRIVATE
     io/pico_gpio.cpp
     io/pico_persist.cpp
     io/pico_io.cpp
-    ${VIREO_SOURCE_CORE}
-    ${VIREO_SOURCE_IO}
-)
-
-target_include_directories(${PICOG_TARGET}
-    PUBLIC ${VIREO_INCLUDE}
-    PUBLIC ../picog/include
 )
 
 # These are the components we're using from the pico-sdk
