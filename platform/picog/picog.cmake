@@ -61,8 +61,10 @@ add_custom_command(
 )
 
 #set_picog_build is the main macro to configure a target as picoG firmware
-macro(create_picog_build)
+function(create_picog_build target)
+
     set(PICOG_TARGET "picoG_${VIREO_PLATFORM}_${VIREO_BOARD}_${PICOG_VERSION}")
+    set(${target} "${PICOG_TARGET}" PARENT_SCOPE)
 
     add_executable(${PICOG_TARGET})
 
@@ -85,4 +87,4 @@ macro(create_picog_build)
     )
 
     add_dependencies(${PICOG_TARGET} picoG_Version)
-endmacro()
+endfunction()

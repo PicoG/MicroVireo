@@ -25,10 +25,11 @@ include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
 project(picoG)
 pico_sdk_init()
 
-create_picog_build()
+create_picog_build(PICO_TARGET)
+message(${PICO_TARGET})
 
 # Creates UF2 file and other debugging outputs
-pico_add_extra_outputs(${PICOG_TARGET})
+pico_add_extra_outputs(${PICO_TARGET})
 
 message("\nConfiguring rp2040 Engine build\n")
 
@@ -45,8 +46,8 @@ message("STDIO configured over ${RP2040_STDIO}")
 
 #Sets the driver to use for stdio
 if (RP2040_STDIO STREQUAL "usb")
-    pico_enable_stdio_usb(${PICOG_TARGET} 1)
-    pico_enable_stdio_uart(${PICOG_TARGET} 0)
+    pico_enable_stdio_usb(${PICO_TARGET} 1)
+    pico_enable_stdio_uart(${PICO_TARGET} 0)
 elseif (RP2040_STDIO STREQUAL "uart")
 
     # The following VIREO_STDIO_UART_XX values configure the port when pico_stdio_uart is used above
@@ -69,13 +70,13 @@ elseif (RP2040_STDIO STREQUAL "uart")
     endif ()
 endif ()
 
-target_compile_definitions(${PICOG_TARGET}
+target_compile_definitions(${PICO_TARGET}
     PUBLIC __rp2040__ #identify platform within code
     PUBLIC DEBUG_RP=0 #Turn on stdout debugging and tracing of the engine
     PUBLIC DEBUG_MEM=0
 )
 
-target_sources(${PICOG_TARGET} PRIVATE
+target_sources(${PICO_TARGET} PRIVATE
     main.cpp
     io/pico_gpio.cpp
     io/pico_persist.cpp
@@ -87,13 +88,13 @@ set(PICO_SDK_COMPONENTS
     pico_stdlib
 )
 
-target_link_libraries(${PICOG_TARGET}
+target_link_libraries(${PICO_TARGET}
     ${PICO_SDK_COMPONENTS}
 )
 
 #Enable features and types for Vireo, eventually migrate to macros provided in Vireo base cmake
 # which will also allow the vireo build to customize which source files get built.
-target_compile_definitions(${PICOG_TARGET}
+target_compile_definitions(${PICO_TARGET}
     PUBLIC VIREO_SKIP_CFG_TYPES=1 #Skip configuration defines in BuildConfig.h
     PUBLIC VIREO_DEBUG_EXEC_PRINT_INSTRS=0
 
