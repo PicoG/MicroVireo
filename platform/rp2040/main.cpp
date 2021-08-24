@@ -164,7 +164,7 @@ int main()
                 } else if (input.ComparePrefixCStr("mem()")) {
                     fprintf(stdout, "Vireo Used Memory: %d\n", gPlatform.Mem.TotalAllocated());
                     fflush(stdout);
-                } else if (input.ComparePrefixCStr("ver()")) {
+                } else if (input.ComparePrefixCStr("version()")) {
                     gPlatform.IO.Printf("%s\n%s\nOK\n", PICOG_VERSION, PICOG_VERSION_TS);
                 } else if (input.ComparePrefixCStr("id()")) {
                     uint32_t len = PICO_UNIQUE_BOARD_ID_SIZE_BYTES * 2 + 1;
