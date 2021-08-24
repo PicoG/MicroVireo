@@ -6,7 +6,7 @@
 #include <pico/stdio.h>
 #include <pico/stdlib.h>
 
-#include <picog/version.h>
+#include <picog.h>
 #include <pico/unique_id.h>
 
 namespace Vireo {
@@ -172,6 +172,10 @@ int main()
                     
                     pico_get_unique_board_id_string(id, len);
                     gPlatform.IO.Printf("%s\nOK\n", id);
+                } else if (input.ComparePrefixCStr("platform()")) {
+                    gPlatform.IO.Printf("%s\nOK\n", PICOG_PLATFORM);
+                } else if (input.ComparePrefixCStr("board()")) {
+                    gPlatform.IO.Printf("%s\nOK\n", PICOG_BOARD);
                 } else {
                     doRepl = true;
                 }

@@ -3,15 +3,10 @@
 
 //The version number can be editted in ../version_build.cmake
 
+#include "common.h"
 #include "build.h"
 
 #define PICOG_VER_SEP .
-
-#define _PICOG_STR(x) #x
-#define PICOG_STR(x) _PICOG_STR(x)
-
-#define _PICOG_CONCAT(x, y) x##y
-#define PICOG_CONCAT(x, y) _PICOG_CONCAT(x, y)
 
 #define PICOG_VERSION_TS PICOG_STR(PICOG_VER_TS)
 

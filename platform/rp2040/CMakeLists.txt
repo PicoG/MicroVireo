@@ -60,19 +60,17 @@ include(${VIREO_DIR}/vireo.cmake)
 # Brings in the Pi Pico SDK, needed before declaring project
 include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
 
-include (../picog/version_build.cmake)
+include (../picog/picog.cmake)
 
 set(PICOG_TARGET "picoG_${VIREO_PLATFORM}_${VIREO_BOARD}_${PICOG_VERSION}")
 
-project(Vireo)
+project(picoG)
 
 pico_sdk_init()
 
 add_executable(${PICOG_TARGET})
 
-picog_add_version(${PICOG_TARGET})
-
-picog_add_version(${PICOG_TARGET})
+set_picog_build(${PICOG_TARGET})
 
 # Creates UF2 file and other debugging outputs
 pico_add_extra_outputs(${PICOG_TARGET})
