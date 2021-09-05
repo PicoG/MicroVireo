@@ -26,7 +26,6 @@ project(picoG)
 pico_sdk_init()
 
 create_picog_build(PICO_TARGET)
-message(${PICO_TARGET})
 
 # Creates UF2 file and other debugging outputs
 pico_add_extra_outputs(${PICO_TARGET})

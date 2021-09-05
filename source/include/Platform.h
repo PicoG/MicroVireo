@@ -103,6 +103,9 @@ public:
     uint8_t CancelVia();
     uint8_t EndVia(bool runAtStartup);
 
+    bool SetAlias(const Utf8Char *begin, const Utf8Char *end);
+    const char * GetAlias();
+
     bool HasVia();
     bool HasStartup();
 

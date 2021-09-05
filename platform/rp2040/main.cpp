@@ -9,6 +9,8 @@
 #include <picog.h>
 #include <pico/unique_id.h>
 
+#define ALIAS_LEN_MAX 20
+
 namespace Vireo {
 
 static struct {
@@ -176,6 +178,50 @@ int main()
                     gPlatform.IO.Printf("%s\nOK\n", PICOG_PLATFORM);
                 } else if (input.ComparePrefixCStr("board()")) {
                     gPlatform.IO.Printf("%s\nOK\n", PICOG_BOARD);
+                } else if (input.ComparePrefixCStr("alias(")) {
+                    const Utf8Char *aliasBegin = 0, *aliasEnd = 0;
+
+                    for(const Utf8Char *c = input.Begin(); c != input.End(); ++c) {
+                        if (*c == '(') {
+                            aliasBegin = c + 1;
+                        } else if (*c == ')') {
+                            aliasEnd = c - 1;
+                        }
+                    }
+
+                    /*gPlatform.IO.Printf("begin: 0x%x\nend: 0x%x\n", aliasBegin, aliasEnd);
+                    fflush(stdout);
+                    sleep_ms(100);
+                    if (aliasBegin) {
+                        gPlatform.IO.Printf("%c ", *aliasBegin);
+                    }
+                    if (aliasEnd) {
+                        gPlatform.IO.Printf("%c", *aliasEnd);
+                    }
+                    gPlatform.IO.Print("\n");
+                    sleep_ms(100);
+                    */
+
+                    if (aliasBegin && aliasEnd) {
+                        int len = aliasEnd - aliasBegin + 1;
+
+                        //gPlatform.IO.Printf("len: %d\n", len);
+                        //sleep_ms(100);
+
+                        if (len == 0) {
+                            const char * alias = gPlatform.Persist.GetAlias();
+                            if (alias) {
+                                gPlatform.IO.Print(alias);
+                            }
+
+                            gPlatform.IO.Print("\nOK\n");
+                        } else if (len <= ALIAS_LEN_MAX) {
+                            gPlatform.Persist.SetAlias(aliasBegin, aliasEnd);
+                            gPlatform.IO.Print("OK\n");
+                        }
+                    } else {
+                        gPlatform.IO.Print("Error: Incomplete name command.\n");
+                    }
                 } else {
                     doRepl = true;
                 }

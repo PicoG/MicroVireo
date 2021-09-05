@@ -3,6 +3,7 @@
 */
 #include <hardware/flash.h>
 #include <hardware/sync.h>
+#include <pico/stdlib.h>
 
 //Get Platform.h from DataTypes.h 
 #include "DataTypes.h"
@@ -10,12 +11,15 @@
 //Info starts at 1MB into flash memory
 #define PICOG_VIA_INFO_OFFSET() ((uint32_t)0x100000)
 
+#define PICOG_DEVICE_ALIAS_OFFSET() (PICOG_VIA_INFO_OFFSET() - FLASH_SECTOR_SIZE)
+
 //Start the source one sector after the info
 #define PICOG_VIA_SRC_OFFSET() (PICOG_VIA_INFO_OFFSET() + FLASH_SECTOR_SIZE)
 
 //These macros retrieve the actual data accessible to program space
 #define PICOG_VIA_INFO() ((PersistedViaInfo *)(PICOG_VIA_INFO_OFFSET() + XIP_BASE))
 #define PICOG_VIA_SRC() ((char *)(PICOG_VIA_SRC_OFFSET() + XIP_BASE))
+#define PICOG_DEVICE_ALIAS() ((char *)(PICOG_DEVICE_ALIAS_OFFSET() + XIP_BASE))
 
 #define PAGES_PER_SECTOR() (FLASH_SECTOR_SIZE / FLASH_PAGE_SIZE)
 
@@ -70,6 +74,41 @@ PlatformPersist::PlatformPersist() {
     flash.viaStart = (char *)PICOG_VIA_SRC();
 
     flash.started = false;
+}
+
+bool PlatformPersist::SetAlias(const Utf8Char *begin, const Utf8Char *end) {
+    uint32_t offset = PICOG_DEVICE_ALIAS_OFFSET();
+    
+    uint8_t buf[FLASH_PAGE_SIZE];
+    memset(buf, 0, FLASH_PAGE_SIZE);
+    const Utf8Char *c = begin;
+    int i = 0;
+
+    while (c <= end) {
+        buf[i] = *c;
+        ++i;
+        ++c;
+    }
+
+    uint32_t ints = save_and_disable_interrupts();
+
+    flash_range_erase(PICOG_DEVICE_ALIAS_OFFSET(), FLASH_SECTOR_SIZE);
+    flash_range_program(PICOG_DEVICE_ALIAS_OFFSET(), buf, FLASH_PAGE_SIZE);
+
+    restore_interrupts(ints);
+
+    return true;
+}
+
+const char * PlatformPersist::GetAlias() {
+    char * alias = PICOG_DEVICE_ALIAS();
+
+    //Check if unset (flash erased and not written)
+    if (*alias == 0xFF) {
+        return 0;
+    }
+
+    return alias;
 }
 
 bool PlatformPersist::LoadVia(PersistedVia *via) {
