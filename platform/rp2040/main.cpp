@@ -189,24 +189,8 @@ int main()
                         }
                     }
 
-                    /*gPlatform.IO.Printf("begin: 0x%x\nend: 0x%x\n", aliasBegin, aliasEnd);
-                    fflush(stdout);
-                    sleep_ms(100);
-                    if (aliasBegin) {
-                        gPlatform.IO.Printf("%c ", *aliasBegin);
-                    }
-                    if (aliasEnd) {
-                        gPlatform.IO.Printf("%c", *aliasEnd);
-                    }
-                    gPlatform.IO.Print("\n");
-                    sleep_ms(100);
-                    */
-
                     if (aliasBegin && aliasEnd) {
                         int len = aliasEnd - aliasBegin + 1;
-
-                        //gPlatform.IO.Printf("len: %d\n", len);
-                        //sleep_ms(100);
 
                         if (len == 0) {
                             const char * alias = gPlatform.Persist.GetAlias();
