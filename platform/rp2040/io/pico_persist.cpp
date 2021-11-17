@@ -111,6 +111,15 @@ const char * PlatformPersist::GetAlias() {
     return alias;
 }
 
+void PlatformPersist::ClearAlias() {
+    uint32_t ints = save_and_disable_interrupts();
+
+    //clear flash data configured with info
+    flash_range_erase(PICOG_DEVICE_ALIAS_OFFSET(), FLASH_SECTOR_SIZE);
+
+    restore_interrupts(ints);
+}
+
 bool PlatformPersist::LoadVia(PersistedVia *via) {
     via->source = PICOG_VIA_SRC();
     via->info = flash.info;

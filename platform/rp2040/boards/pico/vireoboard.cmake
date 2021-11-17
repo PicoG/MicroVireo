@@ -1,2 +1,2 @@
-#cmake for Raspberry Pi Pico
+#cmake for Sparkfun Pro Micro
 

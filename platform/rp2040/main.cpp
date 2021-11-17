@@ -206,7 +206,10 @@ int main()
                     } else {
                         gPlatform.IO.Print("Error: Incomplete name command.\n");
                     }
-                } else {
+                } else if (input.ComparePrefixCStr("clearalias()")) {
+                    gPlatform.Persist.ClearAlias();
+                    gPlatform.IO.Print("OK\n");
+                } else{
                     doRepl = true;
                 }
             }
@@ -246,8 +249,8 @@ int main()
 }
 
 void Vireo::ShowVia() {
-    gPlatform.IO.Print(gPlatform.Persist.CStr());
-    gPlatform.IO.Print("\n");
+    //gPlatform.IO.Print(gPlatform.Persist.CStr());
+    //gPlatform.IO.Print("\n");
 
     char * c = gPlatform.Persist.CStr();
 

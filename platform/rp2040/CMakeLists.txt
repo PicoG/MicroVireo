@@ -13,7 +13,7 @@ endif()
 
 # Default vireo board to Pico if not set
 if(NOT VIREO_BOARD)
-    set(VIREO_BOARD pico)
+    set(VIREO_BOARD sfpromicro)
 endif()
 
 #include all the common config for building picoG firmware

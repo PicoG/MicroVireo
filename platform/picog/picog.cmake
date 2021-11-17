@@ -70,7 +70,7 @@ function(create_picog_build target)
 
     target_compile_definitions(${PICOG_TARGET}
         PUBLIC _PICOG_PLATFORM=${VIREO_PLATFORM}
-        PUBLIC _PICOG_BOARD=${VIREO_BOARD}
+        PUBLIC    _PICOG_BOARD=${VIREO_BOARD}
         PUBLIC PICOG_VER_MAJOR=${PICOG_VER_MAJOR}
         PUBLIC PICOG_VER_MINOR=${PICOG_VER_MINOR}
         PUBLIC PICOG_VER_PATCH=${PICOG_VER_PATCH}
