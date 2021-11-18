@@ -64,10 +64,15 @@ add_custom_command(
 function(create_picog_build target)
 
     set(PICOG_TARGET "picoG_${VIREO_PLATFORM}_${VIREO_BOARD}_${PICOG_VERSION}")
+
+    #Forward target name out to caller in specified variable name
+    #${target} contains the name of the parent variable to store the value in
     set(${target} "${PICOG_TARGET}" PARENT_SCOPE)
 
+    #Begin the target build configuration
     add_executable(${PICOG_TARGET})
 
+    #configure the define symbols that get passed into the source based on the build configuration
     target_compile_definitions(${PICOG_TARGET}
         PUBLIC _PICOG_PLATFORM=${VIREO_PLATFORM}
         PUBLIC    _PICOG_BOARD=${VIREO_BOARD}
@@ -76,15 +81,18 @@ function(create_picog_build target)
         PUBLIC PICOG_VER_PATCH=${PICOG_VER_PATCH}
     )
 
+    #Add the Vireo engine sources to the build
     target_sources(${PICOG_TARGET} PUBLIC
         ${VIREO_SOURCE_CORE}
         ${VIREO_SOURCE_IO}
     )
 
+    #Specify the vireo and picoG include paths for header includes
     target_include_directories(${PICOG_TARGET}
         PUBLIC ${VIREO_INCLUDE}
         PUBLIC ${CMAKE_CURRENT_LIST_DIR}/../picog/include
     )
 
+    #add a dep on the picoG_Version pseudo target described above to get it to update whenever a build is performed
     add_dependencies(${PICOG_TARGET} picoG_Version)
 endfunction()

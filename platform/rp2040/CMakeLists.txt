@@ -13,11 +13,10 @@ endif()
 
 # Default vireo board to Pico if not set
 if(NOT VIREO_BOARD)
-    set(VIREO_BOARD sfpromicro)
+    set(VIREO_BOARD pico)
 endif()
 
-#include all the common config for building picoG firmware
-include (../picog/picog.cmake)
+message("\n-- Initializing Pi Pico SDK --")
 
 # Brings in the Pi Pico SDK, needed before declaring project
 include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
@@ -25,12 +24,17 @@ include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
 project(picoG)
 pico_sdk_init()
 
+#include all the common config for building picoG firmware
+include (../picog/picog.cmake)
+
+message("\n\n-- Configuring picoG build --")
+
 create_picog_build(PICO_TARGET)
+
+message("Output will be ${PICO_TARGET}.uf2")
 
 # Creates UF2 file and other debugging outputs
 pico_add_extra_outputs(${PICO_TARGET})
-
-message("\nConfiguring rp2040 Engine build\n")
 
 # We expect RP2040_STDIO to be set to 'usb', 'uart', or 'none'
 # If not defined we default to usb.
@@ -112,3 +116,4 @@ target_compile_definitions(${PICO_TARGET}
     PUBLIC VIREO_VIA_PERSIST=1 # Provision for persisting VIA source to device for autorun on boot
     #PRIVATE kVireoOS_linuxU=1
 )
+message("\n")
