@@ -1,7 +1,7 @@
 #ifndef version_h_
 #define version_h_
 
-//The version number can be editted in ../version_build.cmake
+//The version number can be editted in ../version.cmake
 
 #include "common.h"
 #include "build.h"

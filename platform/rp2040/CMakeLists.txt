@@ -1,5 +1,5 @@
 # Pi Pico Vireo Engine
-# Pico port started by Derrick Bommarito https://github.com/illuminated-g/VireoSDK
+# Pico port started by Derrick Bommarito https://github.com/picog/picovireo
 
 # This build configuration borrows heavily from the design of MicroPython's build system
 # https://github.com/micropython/micropython
@@ -7,16 +7,24 @@
 #Match the same minimum version specified by pico-sdk
 cmake_minimum_required(VERSION 3.13)
 
-if(NOT VIREO_PLATFORM)
-    set(VIREO_PLATFORM rp2040)
-endif()
-
-# Default vireo board to Pico if not set
-if(NOT VIREO_BOARD)
-    set(VIREO_BOARD pico)
-endif()
-
 message("\n-- Initializing Pi Pico SDK --")
+
+# Set build type to reduce firmware size
+# Used by pico-sdk
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE MinSizeRel)
+endif()
+
+#See if PICK_SDK_PATH already defined by environment, otherwise set it to default
+if (DEFINED ENV{PICO_SDK_PATH})
+    set(PICO_SDK_PATH $ENV{PICO_SDK_PATH})
+else ()
+    #default to looking for pico-sdk as a sibling of the Vireo folder
+    get_filename_component(PICO_SDK_PATH "../../../pico-sdk" ABSOLUTE)
+    if (NOT EXISTS ${PICO_SDK_PATH}/pico_sdk_init.cmake)
+        message(FATAL_ERROR "PICO_SDK_PATH variable not set in environment.")
+    endif()
+endif()
 
 # Brings in the Pi Pico SDK, needed before declaring project
 include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
@@ -24,10 +32,21 @@ include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
 project(picoG)
 pico_sdk_init()
 
+message("\n\n-- Configuring picoG build --")
+
+if(NOT PICOG_PLATFORM)
+    message("No PICOG_PLATFORM set, defaulting to rp2040")
+    set(PICOG_PLATFORM rp2040)
+endif()
+
+# Default vireo board to Pico if not set
+if(NOT PICOG_BOARD)
+    message("No PICOG_BOARD set, defaulting to pico")
+    set(PICOG_BOARD pico)
+endif()
+
 #include all the common config for building picoG firmware
 include (../picog/picog.cmake)
-
-message("\n\n-- Configuring picoG build --")
 
 create_picog_build(PICO_TARGET)
 
