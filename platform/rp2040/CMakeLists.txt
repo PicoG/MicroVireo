@@ -103,11 +103,13 @@ target_sources(${PICO_TARGET} PRIVATE
     io/pico_gpio.cpp
     io/pico_persist.cpp
     io/pico_io.cpp
+    io/pico_i2c.cpp
 )
 
 # These are the components we're using from the pico-sdk
 set(PICO_SDK_COMPONENTS
     pico_stdlib
+    hardware_i2c
 )
 
 target_link_libraries(${PICO_TARGET}
