@@ -13,9 +13,10 @@ namespace Vireo {
 i2c_inst_t *i2c[2] = { i2c0, i2c1 };
 
 VIREO_FUNCTION_SIGNATURE3(I2CInit, Int32, UInt32, UInt32) {
-
+    int bus = _Param(0);
+    uint baud = _Param(1);
     //initialize specific I2C bus index at the specified speed and return the actual baud
-    _Param(2) = i2c_init(i2c[_Param(0)], _Param(1));
+    _Param(2) = i2c_init(i2c[bus], baud);
 
     return _NextInstruction();
 }

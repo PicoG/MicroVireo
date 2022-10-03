@@ -1,5 +1,9 @@
+# This cmake include configures all the common settings.
+# If a new target is added that doesn't work with any settings,
+# those settings would need to be moved to platform specific CMakeLists
 
-
+# Right now this is written for a single target build,
+# I want to refactor this so that multiple targets can be built at once.
 set (CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_C_STANDARD 11)
@@ -44,16 +48,19 @@ add_custom_command(
 )
 
 #set_picog_build is the main macro to configure a target as picoG firmware
-function(create_picog_build target)
+function(create_picog_build target output)
 
-    set(PICOG_TARGET "picoG_${PICOG_PLATFORM}_${PICOG_BOARD}_${PICOG_VERSION}")
+    set(PICOG_TARGET "picoG_${PICOG_PLATFORM}_${PICOG_BOARD}")
+    set(PICOG_OUTPUT "${PICOG_TARGET}_${PICOG_VERSION}")
 
     #Forward target name out to caller in specified variable name
     #${target} contains the name of the parent variable to store the value in
     set(${target} "${PICOG_TARGET}" PARENT_SCOPE)
+    set(${output} "${PICOG_OUTPUT}" PARENT_SCOPE)
 
     #Begin the target build configuration
     add_executable(${PICOG_TARGET})
+    set_target_properties(${PICOG_TARGET} PROPERTIES OUTPUT_NAME "${PICOG_OUTPUT}")
 
     #configure the define symbols that get passed into the source based on the build configuration
     target_compile_definitions(${PICOG_TARGET}

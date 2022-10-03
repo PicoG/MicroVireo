@@ -29,10 +29,10 @@ endif()
 # Brings in the Pi Pico SDK, needed before declaring project
 include(${PICO_SDK_PATH}/pico_sdk_init.cmake)
 
-project(picoG)
+project(rp2040 C CXX ASM)
 pico_sdk_init()
 
-message("\n\n-- Configuring picoG build --")
+message("\n\n-- Configuring picoG build --\n")
 
 if(NOT PICOG_PLATFORM)
     message("No PICOG_PLATFORM set, defaulting to rp2040")
@@ -48,12 +48,12 @@ endif()
 #include all the common config for building picoG firmware
 include (../picog/picog.cmake)
 
-create_picog_build(PICO_TARGET)
+create_picog_build(RP2040_TARGET RP2040_OUTPUT)
 
-message("Output will be ${PICO_TARGET}.uf2")
+message("Output will be ${RP2040_OUTPUT}.uf2")
 
 # Creates UF2 file and other debugging outputs
-pico_add_extra_outputs(${PICO_TARGET})
+pico_add_extra_outputs(${RP2040_TARGET})
 
 # We expect RP2040_STDIO to be set to 'usb', 'uart', or 'none'
 # If not defined we default to usb.
@@ -68,8 +68,8 @@ message("STDIO configured over ${RP2040_STDIO}")
 
 #Sets the driver to use for stdio
 if (RP2040_STDIO STREQUAL "usb")
-    pico_enable_stdio_usb(${PICO_TARGET} 1)
-    pico_enable_stdio_uart(${PICO_TARGET} 0)
+    pico_enable_stdio_usb(${RP2040_TARGET} 1)
+    pico_enable_stdio_uart(${RP2040_TARGET} 0)
 elseif (RP2040_STDIO STREQUAL "uart")
 
     # The following VIREO_STDIO_UART_XX values configure the port when pico_stdio_uart is used above
@@ -92,13 +92,13 @@ elseif (RP2040_STDIO STREQUAL "uart")
     endif ()
 endif ()
 
-target_compile_definitions(${PICO_TARGET}
+target_compile_definitions(${RP2040_TARGET}
     PUBLIC __rp2040__ #identify platform within code
     PUBLIC DEBUG_RP=0 #Turn on stdout debugging and tracing of the engine
     PUBLIC DEBUG_MEM=0
 )
 
-target_sources(${PICO_TARGET} PRIVATE
+target_sources(${RP2040_TARGET} PRIVATE
     main.cpp
     io/pico_gpio.cpp
     io/pico_persist.cpp
@@ -112,13 +112,13 @@ set(PICO_SDK_COMPONENTS
     hardware_i2c
 )
 
-target_link_libraries(${PICO_TARGET}
+target_link_libraries(${RP2040_TARGET}
     ${PICO_SDK_COMPONENTS}
 )
 
 #Enable features and types for Vireo, eventually migrate to macros provided in Vireo base cmake
 # which will also allow the vireo build to customize which source files get built.
-target_compile_definitions(${PICO_TARGET}
+target_compile_definitions(${RP2040_TARGET}
     PUBLIC VIREO_SKIP_CFG_TYPES=1 #Skip configuration defines in BuildConfig.h
     PUBLIC VIREO_DEBUG_EXEC_PRINT_INSTRS=0
 
