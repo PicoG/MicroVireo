@@ -7,6 +7,8 @@
 #error pico_gpio.cpp should only be included in Pico-SDK platform targets
 #endif
 
+//Enable definitions with GPIO
+
 #include "picog/gpio.h"
 
 namespace Vireo {
